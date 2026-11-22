@@ -1,9 +1,3 @@
-import PluginContext from './PluginContext';
-import PluginProvider from './PluginProvider';
-
-export * from './pluginMapping';
+export { default as PluginTarget } from './PluginTarget.svelte';
 export * from './pluginPreprocessing';
 export * from './pluginValidation';
-
-export { PluginContext, PluginProvider };
-export * from './withPlugins';

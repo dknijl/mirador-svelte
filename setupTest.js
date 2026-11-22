@@ -1,17 +1,12 @@
 import '@testing-library/jest-dom';
 import { vi, beforeAll, beforeEach, afterEach, afterAll } from 'vitest';
-import { setupIntersectionMocking } from 'react-intersection-observer/test-utils';
+import { TestIntersectionObserver, resetIntersections } from './__tests__/utils/intersection';
 import i18next from 'i18next';
 import en from './src/locales/en/translation.json';
 import { server } from './__tests__/mocks/server';
 
 // vitest doesn't set a default
 window.origin = 'http://localhost';
-
-// happy-dom's synthetic document has no real parsed <!doctype html> (it's not
-// loading real HTML source), so @hello-pangea/dnd's dev-only doctype check
-// always warns here. See https://github.com/hello-pangea/dnd/blob/main/docs/guides/setup-problem-detection-and-error-recovery.md
-window['__@hello-pangea/dnd-disable-dev-warnings'] = true;
 
 vi.setConfig({ testTimeout: 10_000 });
 
@@ -71,7 +66,8 @@ class Path2D {
 
 global.Path2D = Path2D;
 
-setupIntersectionMocking(vi.fn);
+globalThis.IntersectionObserver = TestIntersectionObserver;
+afterEach(resetIntersections);
 
 i18next.init({
   lng: 'en',

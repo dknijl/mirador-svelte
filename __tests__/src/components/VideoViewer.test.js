@@ -1,0 +1,58 @@
+import { screen } from '@testing-library/dom';
+import { renderSvelte } from '@tests/utils/render-svelte';
+import VideoViewer from '@src/components/VideoViewer.svelte';
+
+function createWrapper(props) {
+  return renderSvelte(VideoViewer, { videoOptions: { crossOrigin: 'anonymous', 'data-testid': 'video' }, ...props });
+}
+
+describe('VideoViewer', () => {
+  describe('render', () => {
+    it('videoResources', () => {
+      createWrapper({
+        videoResources: [
+          { getFormat: () => 'video/mp4', id: 1 },
+          { getFormat: () => 'video/mp4', id: 2 },
+        ],
+      });
+      const video = screen.getByTestId('video');
+      // eslint-disable-next-line testing-library/no-node-access
+      expect(video.querySelector('source:nth-of-type(1)')).toHaveAttribute('type', 'video/mp4');
+      // eslint-disable-next-line testing-library/no-node-access
+      expect(video.querySelector('source:nth-of-type(2)')).toHaveAttribute('type', 'video/mp4');
+    });
+    it('passes through configurable options', () => {
+      createWrapper({
+        videoResources: [{ getFormat: () => 'video/mp4', id: 1 }],
+      });
+      expect(screen.getByTestId('video')).toHaveAttribute('crossOrigin', 'anonymous');
+    });
+    it('captions', () => {
+      createWrapper({
+        captions: [
+          { getDefaultLabel: () => 'English', getProperty: () => 'en', id: 1 },
+          { getDefaultLabel: () => 'French', getProperty: () => 'fr', id: 2 },
+        ],
+        videoResources: [{ getFormat: () => 'video/mp4', id: 1 }],
+      });
+      const video = screen.getByTestId('video');
+      // eslint-disable-next-line testing-library/no-node-access
+      expect(video.querySelector('track:nth-of-type(1)')).toHaveAttribute('srcLang', 'en');
+      // eslint-disable-next-line testing-library/no-node-access
+      expect(video.querySelector('track:nth-of-type(1)')).toHaveAttribute('label', 'English');
+      // eslint-disable-next-line testing-library/no-node-access
+      expect(video.querySelector('track:nth-of-type(2)')).toHaveAttribute('srcLang', 'fr');
+      // eslint-disable-next-line testing-library/no-node-access
+      expect(video.querySelector('track:nth-of-type(2)')).toHaveAttribute('label', 'French');
+    });
+
+    it('seeks to startTime once the metadata loads', () => {
+      createWrapper({ canvasId: 'c1', videoResources: [{ getFormat: () => 'video/mp4', id: 1 }], startTime: 30 });
+      const video = screen.getByTestId('video');
+
+      video.dispatchEvent(new Event('loadedmetadata'));
+
+      expect(video.currentTime).toEqual(30);
+    });
+  });
+});

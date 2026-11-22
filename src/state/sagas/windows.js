@@ -1,4 +1,4 @@
-import { all, call, put, select, takeEvery } from 'redux-saga/effects';
+import { all, call, put, race, select, take, takeEvery } from 'redux-saga/effects';
 import ActionTypes from '../actions/action-types';
 import {
   setContentSearchCurrentAnnotation,
@@ -288,11 +288,18 @@ export function* determineAndShowCollectionDialog(manifestId, windowId) {
   }
 }
 
-/** */
+/** Imported windows own their initial canvas and viewport, even if an older manifest request finishes later. */
+function* initializeWindow(action) {
+  yield race({
+    initialized: call(fetchWindowManifest, action),
+    replaced: take(ActionTypes.IMPORT_MIRADOR_STATE),
+  });
+}
+
 export default function* windowsSaga() {
   yield all([
-    takeEvery(ActionTypes.ADD_WINDOW, fetchWindowManifest),
-    takeEvery(ActionTypes.UPDATE_WINDOW, fetchWindowManifest),
+    takeEvery(ActionTypes.ADD_WINDOW, initializeWindow),
+    takeEvery(ActionTypes.UPDATE_WINDOW, initializeWindow),
     takeEvery(ActionTypes.UPDATE_WINDOW, setCanvasOnNewSequence),
     takeEvery(ActionTypes.UPDATE_WINDOW, fetchCollectionManifests),
     takeEvery(ActionTypes.SET_CANVAS, setCurrentAnnotationsOnCurrentCanvas),

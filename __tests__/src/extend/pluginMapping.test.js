@@ -1,8 +1,4 @@
-import {
-  connectPluginsToStore,
-  createTargetToPluginMapping,
-  addPluginsToCompanionWindowsRegistry,
-} from '@src/extend/pluginMapping';
+import { createTargetToPluginMapping } from '@src/extend/pluginMapping';
 
 describe('createTargetToPluginMapping', () => {
   it('returns empty object if plugin array is empty', () => {
@@ -50,67 +46,15 @@ describe('createTargetToPluginMapping', () => {
   });
 });
 
-describe('connectPluginsToStore', () => {
-  it('returns plugins with components connected to store', () => {
-    /** */
-    const ComponentA = (props) => null;
-    /** */
-    const ComponentB = (props) => null;
-
-    const plugins = [
-      {
-        component: ComponentA,
-        mapStateToProps: {},
-        mode: 'wrap',
-        target: 'Window',
-      },
-      {
-        component: ComponentB,
-        mapDispatchToProps: {},
-        mode: 'add',
-        target: 'TopBar',
-      },
-    ];
-
-    const result = connectPluginsToStore(plugins);
-    expect(result.length).toBe(2);
-    expect(result[0].component.displayName).toBe('Connect(ComponentA)');
-    expect(result[1].component.displayName).toBe('Connect(ComponentB)');
-  });
-
-  it('returns plugins unchanged that do not need a connection to the store', () => {
-    /** */
-    const ComponentA = (props) => null;
-
-    const plugins = [
-      {
-        component: ComponentA,
-        mode: 'wrap',
-        target: 'Window',
-      },
-    ];
-
-    const result = connectPluginsToStore(plugins);
-    expect(result[0].component).toEqual(ComponentA);
-  });
+it('leaves state-only and companion registrations out of UI slots', () => {
+  expect(
+    createTargetToPluginMapping([{ reducers: { example: () => 1 } }, { component: () => {}, companionWindowKey: 'example' }]),
+  ).toEqual({});
 });
-
-describe('addPluginsToCompanionWindowsRegistry', () => {
-  it('adds plugin references to the companion window registry', () => {
-    /** */
-    const ComponentA = (props) => null;
-
-    const plugins = [
-      {
-        companionWindowKey: 'xyz',
-        component: ComponentA,
-        mode: 'add',
-        target: 'CompanionWindowFactory',
-      },
-    ];
-
-    const result = addPluginsToCompanionWindowsRegistry(plugins);
-
-    expect(result.xyz).toBe(ComponentA);
-  });
+it('isolates mappings between viewer instances', () => {
+  const plugin = { target: 'Window', mode: 'wrap', component: () => {} };
+  const first = createTargetToPluginMapping([plugin]);
+  const second = createTargetToPluginMapping([]);
+  expect(first.Window.wrap).toEqual([plugin]);
+  expect(second.Window).toBeUndefined();
 });

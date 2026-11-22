@@ -1,6 +1,5 @@
 import { expect, it } from 'vitest';
-import { screen, waitFor, fireEvent } from '@testing-library/react';
-import { setupIntegrationTestViewer } from '@tests/utils/test-utils';
+import { screen, waitFor, fireEvent, setupIntegrationTestViewer } from '@tests/utils/test-utils';
 import settings from '../mirador-configs/plugin-companion-window';
 
 describe('add plugins for companion windows', () => {

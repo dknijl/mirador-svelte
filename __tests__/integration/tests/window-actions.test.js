@@ -1,6 +1,5 @@
 import { expect, it } from 'vitest';
-import { screen, fireEvent, waitFor } from '@testing-library/react';
-import { setupIntegrationTestViewer } from '@tests/utils/test-utils';
+import { screen, fireEvent, waitFor, setupIntegrationTestViewer } from '@tests/utils/test-utils';
 import config from '../mirador-configs/single-van-gogh';
 
 describe('Window actions', () => {

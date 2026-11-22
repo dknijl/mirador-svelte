@@ -10,7 +10,6 @@ export { default as AnnotationResource } from './AnnotationResource';
 export { default as CanvasAnnotationDisplay } from './CanvasAnnotationDisplay';
 export { default as CanvasGroupings } from './CanvasGroupings';
 export { default as CanvasWorld } from './CanvasWorld';
-export { default as CompanionWindowRegistry } from './CompanionWindowRegistry';
 export { default as MiradorCanvas } from './MiradorCanvas';
 export { default as MiradorManifest } from './MiradorManifest';
 export { default as MiradorViewer } from './MiradorViewer';

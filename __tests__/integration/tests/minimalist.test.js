@@ -1,6 +1,5 @@
 import { expect, it } from 'vitest';
-import { screen } from '@testing-library/react';
-import { setupIntegrationTestViewer } from '@tests/utils/test-utils';
+import { screen, setupIntegrationTestViewer } from '@tests/utils/test-utils';
 import config from '../mirador-configs/minimalist';
 
 describe('Minimalist configuration to Mirador', () => {

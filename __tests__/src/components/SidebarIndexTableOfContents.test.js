@@ -1,0 +1,340 @@
+import { act, render, screen, waitFor } from '@tests/utils/test-utils';
+import userEvent from '@testing-library/user-event';
+import { Utils } from 'manifesto.js';
+
+import SidebarIndexTableOfContents from '@src/components/SidebarIndexTableOfContents.svelte';
+import Connected from '@src/svelte/Connected.svelte';
+import manifestVersion2 from '../../fixtures/version-2/structures.json';
+import manifestVersion3 from '../../fixtures/version-3/structures.json';
+import multiLanguageLabels from '../../fixtures/version-2/multi-language-labels.json';
+import { getLocalizedSequenceTreeStructure } from '@src/state/selectors/sequences';
+
+/**
+ * Create wrapper for SidebarIndexTableOfContents component
+ * @param {*} props
+ */
+function createWrapper(props) {
+  const manifest = Utils.parseManifest(props.manifest ? props.manifest : manifestVersion2);
+  return render(SidebarIndexTableOfContents, {
+    id: 'something',
+    classes: {},
+    treeStructure: props.treeStructure ? props.treeStructure : manifest.getDefaultTree(),
+    visibleNodeIds: props.visibleNodeIds ? props.visibleNodeIds : [],
+    expandedNodeIds: props.expandedNodeIds ? props.expandedNodeIds : [],
+    containerRef: props.containerRef,
+    nodeIdToScrollTo: props.nodeIdToScrollTo,
+    ...props,
+  });
+}
+
+/**
+ * Create an interactive wrapper for SidebarIndexTableOfContents component hooked up
+ * to the redux store (because the controlled treeview really needs to be connected to
+ * write a reasonable test for it)
+ */
+function createInteractiveWrapper({ manifest = manifestVersion3, ...props }) {
+  return render(
+    Connected,
+    {
+      name: 'SidebarIndexTableOfContents',
+      component: SidebarIndexTableOfContents,
+      targetProps: { id: 'something', windowId: 'a', ...props },
+    },
+    {
+      preloadedState: {
+        companionWindows: {
+          something: {
+            id: 'something',
+          },
+        },
+        manifests: {
+          'http://example.com/manifest.json': {
+            json: manifest,
+          },
+        },
+        windows: {
+          a: { manifestId: 'http://example.com/manifest.json' },
+        },
+      },
+    },
+  );
+}
+
+describe('SidebarIndexTableOfContents', () => {
+  let setCanvas;
+
+  beforeEach(() => {
+    setCanvas = vi.fn();
+  });
+
+  it('does not render a TreeView if the tree structure is missing', () => {
+    render(SidebarIndexTableOfContents);
+
+    expect(screen.queryByRole('tree')).not.toBeInTheDocument();
+  });
+
+  it('renders a tree item for every visible node', () => {
+    const { unmount } = createWrapper({});
+    expect(screen.getAllByRole('treeitem')).toHaveLength(5);
+
+    unmount();
+
+    createWrapper({
+      treeStructure: {
+        nodes: [
+          {
+            id: '0',
+            nodes: [
+              {
+                id: '0-0',
+                nodes: [],
+              },
+              {
+                id: '0-1',
+                nodes: [],
+              },
+            ],
+          },
+        ],
+      },
+    });
+    expect(screen.getByRole('treeitem')).toBeInTheDocument();
+  });
+
+  it('accepts missing nodes property for tree structure and tree nodes', () => {
+    const { unmount } = createWrapper({
+      treeStructure: { nodes: undefined },
+    });
+    expect(screen.queryByRole('treeitem')).not.toBeInTheDocument();
+    unmount();
+    createWrapper({
+      treeStructure: {
+        nodes: [{ id: '0' }],
+      },
+    });
+    expect(screen.getByRole('treeitem')).toBeInTheDocument();
+  });
+
+  // These test that the real getLocalizedSequenceTreeStructure selector
+  // is what's responsible for picking the right language.
+  it('gets the correct language label', () => {
+    const state = { manifests: { x: { json: multiLanguageLabels } } };
+    const treeStructure = getLocalizedSequenceTreeStructure(state, { manifestId: 'x', locale: 'de' });
+
+    createWrapper({ treeStructure });
+
+    expect(screen.getByText('Vorderdeckel')).toBeInTheDocument();
+  });
+
+  it('gets the default label when no locale is set', () => {
+    const state = { manifests: { x: { json: multiLanguageLabels } } };
+    const treeStructure = getLocalizedSequenceTreeStructure(state, { manifestId: 'x' });
+
+    createWrapper({ treeStructure });
+
+    expect(screen.getByText('front cover')).toBeInTheDocument();
+  });
+
+  it('toggles branch nodes on click', async () => {
+    const user = userEvent.setup();
+    const { store } = createInteractiveWrapper({});
+    expect(screen.getByRole('treeitem')).toBeInTheDocument();
+    const root = screen.getByRole('treeitem');
+
+    await user.click(root);
+    expect(screen.getAllByRole('treeitem')).toHaveLength(5);
+
+    await user.click(root);
+
+    await waitFor(() => {
+      expect(screen.getByRole('treeitem')).toBeInTheDocument();
+    });
+    expect(store.getState().windows.a.canvasId).toBeUndefined();
+  });
+
+  it('toggles branch nodes with arrow keys', async () => {
+    const user = userEvent.setup();
+
+    const { store } = createInteractiveWrapper({});
+    const root = screen.getByRole('treeitem');
+    act(() => {
+      root.focus();
+    });
+    await user.keyboard('{ArrowRight}');
+
+    expect(screen.getAllByRole('treeitem')).toHaveLength(5);
+    await user.keyboard('{ArrowLeft}');
+
+    await waitFor(() => {
+      expect(screen.getByRole('treeitem')).toBeInTheDocument();
+    });
+
+    expect(store.getState().windows.a.canvasId).toBeUndefined();
+  });
+
+  it('toggles branch nodes with Space or Enter key', async () => {
+    const user = userEvent.setup();
+
+    const { store } = createInteractiveWrapper({});
+    const root = screen.getByRole('treeitem');
+
+    act(() => {
+      root.focus();
+    });
+    await user.keyboard('{Enter}');
+    expect(screen.getAllByRole('treeitem')).toHaveLength(5);
+    await user.keyboard('{ArrowLeft}');
+    await waitFor(() => {
+      expect(screen.getByRole('treeitem')).toBeInTheDocument();
+    });
+    await user.keyboard(' ');
+    expect(screen.getAllByRole('treeitem')).toHaveLength(5);
+
+    expect(store.getState().windows.a.canvasId).toBeUndefined();
+  });
+
+  it('calls setCanvas only on click for leaf nodes', async () => {
+    const user = userEvent.setup();
+
+    const { store } = createInteractiveWrapper({});
+    const root = screen.getByRole('treeitem');
+
+    act(() => {
+      root.focus();
+    });
+    await user.keyboard('{Enter}');
+
+    const leafNode = screen.getAllByRole('treeitem')[1];
+
+    act(() => {
+      leafNode.focus();
+    });
+    await user.keyboard('{Enter}');
+
+    expect(store.getState().windows.a.canvasId).toEqual('http://foo.test/1/canvas/c2');
+  });
+
+  it('sets the canvas to a start canvas if present (IIIF v2)', async () => {
+    const user = userEvent.setup();
+    createWrapper({
+      expandItems: () => {},
+      manifest: manifestVersion2,
+      setCanvas,
+      windowId: 'a',
+    });
+
+    const leafNode = screen.getAllByRole('treeitem')[3];
+    act(() => {
+      leafNode.focus();
+    });
+    await user.keyboard('{Enter}');
+
+    expect(setCanvas).toHaveBeenLastCalledWith('a', 'http://foo.test/1/canvas/c11', null, { startTime: undefined });
+  });
+
+  describe('time fragments', () => {
+    function createTimeWrapper(target) {
+      return createWrapper({
+        setCanvas,
+        treeStructure: {
+          nodes: [{ data: { __jsonld: {}, getCanvasIds: () => [target] }, id: '0', label: 'Chapter 1', nodes: [] }],
+        },
+        windowId: 'a',
+      });
+    }
+
+    async function selectItem() {
+      const user = userEvent.setup();
+      act(() => {
+        screen.getByRole('treeitem').focus();
+      });
+      await user.keyboard('{Enter}');
+    }
+
+    it('passes the start of a t= range as startTime', async () => {
+      createTimeWrapper('http://foo.test/1/canvas/c1#t=30.5,60');
+      await selectItem();
+
+      expect(setCanvas).toHaveBeenLastCalledWith('a', 'http://foo.test/1/canvas/c1', null, { startTime: 30.5 });
+    });
+
+    it('passes a startTime for a t= value with no end', async () => {
+      createTimeWrapper('http://foo.test/1/canvas/c1#t=12');
+      await selectItem();
+
+      expect(setCanvas).toHaveBeenLastCalledWith('a', 'http://foo.test/1/canvas/c1', null, { startTime: 12 });
+    });
+
+    it('does not have a start time', async () => {
+      createTimeWrapper('http://foo.test/1/canvas/c1');
+      await selectItem();
+
+      expect(setCanvas).toHaveBeenLastCalledWith('a', 'http://foo.test/1/canvas/c1', null, { startTime: undefined });
+    });
+
+    it('does not set a startTime for a xywh fragment', async () => {
+      createTimeWrapper('http://foo.test/1/canvas/c1#xywh=0,0,10,10');
+      await selectItem();
+
+      expect(setCanvas).toHaveBeenLastCalledWith('a', 'http://foo.test/1/canvas/c1', null, { startTime: undefined });
+    });
+
+    it('stores the startTime on the window when connected to the store', async () => {
+      const { store } = createInteractiveWrapper({
+        manifest: {
+          '@context': 'http://iiif.io/api/presentation/3/context.json',
+          id: 'http://foo.test/1/manifest',
+          items: [{ duration: 120, id: 'http://foo.test/1/canvas/c1', type: 'Canvas' }],
+          structures: [
+            {
+              id: 'http://foo.test/1/range/1',
+              items: [{ id: 'http://foo.test/1/canvas/c1#t=10,20', type: 'Canvas' }],
+              label: { none: ['Chapter 1'] },
+              type: 'Range',
+            },
+          ],
+          type: 'Manifest',
+        },
+      });
+      await selectItem();
+
+      expect(store.getState().windows.a.canvasId).toEqual('http://foo.test/1/canvas/c1');
+      expect(store.getState().windows.a.startTime).toEqual(10);
+    });
+  });
+
+  it('sets the canvas to a start canvas if present (IIIF v3)', async () => {
+    const user = userEvent.setup();
+
+    const { store } = createInteractiveWrapper({
+      manifest: manifestVersion3,
+    });
+
+    const root = screen.getByRole('treeitem');
+    act(() => {
+      root.focus();
+    });
+    await user.keyboard('{Enter}');
+
+    const leafNode1 = screen.getAllByRole('treeitem')[2];
+    act(() => {
+      leafNode1.focus();
+    });
+    await user.keyboard('{Enter}');
+    expect(store.getState().windows.a.canvasId).toEqual('http://foo.test/1/canvas/c7');
+
+    const leafNode2 = screen.getAllByRole('treeitem')[3];
+    act(() => {
+      leafNode2.focus();
+    });
+    await user.keyboard('{Enter}');
+    expect(store.getState().windows.a.canvasId).toEqual('http://foo.test/1/canvas/c9');
+
+    const leafNode3 = screen.getAllByRole('treeitem')[4];
+    act(() => {
+      leafNode3.focus();
+    });
+    await user.keyboard('{Enter}');
+    expect(store.getState().windows.a.canvasId).toEqual('http://foo.test/1/canvas/c10');
+  });
+});

@@ -1,6 +1,6 @@
 # Contributing a Mirador translation
 
-Mirador is built with internationalization and translation support. It uses a translation file and [react-i18next](https://react.i18next.com/) to provide translations in user interface elements.
+Mirador is built with internationalization and translation support. Each viewer uses i18next to translate its Svelte interface with the selected language’s translation file.
 
 ## Getting started
 To contribute a new language to Mirador, you will need to convert the strings contained in [en/translation.json](en/translation.json) to the target language.

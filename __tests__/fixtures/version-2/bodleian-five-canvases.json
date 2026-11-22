@@ -1,0 +1,54 @@
+{
+  "@context": "http://iiif.io/api/presentation/2/context.json",
+  "@id": "https://iiif.bodleian.ox.ac.uk/iiif/manifest/e32a277e-91e2-4a6d-8ba6-cc4bad230410.json",
+  "@type": "sc:Manifest",
+  "label": "Bodleian Library MS. Ind. Inst. Misc. 22",
+  "sequences": [
+    {
+      "@id": "https://iiif.bodleian.ox.ac.uk/iiif/sequence/e32a277e-91e2-4a6d-8ba6-cc4bad230410_default.json",
+      "@type": "sc:Sequence",
+      "canvases": [
+        {
+          "@id": "https://iiif.bodleian.ox.ac.uk/iiif/canvas/e58b8c60-005c-4c41-a22f-07d49cb25ede.json",
+          "@type": "sc:Canvas",
+          "label": "[f. 1 Krishna and his lover Radha seated face-to-face]",
+          "width": 5392,
+          "height": 8158,
+          "thumbnail": "https://iiif.bodleian.ox.ac.uk/iiif/image/e58b8c60-005c-4c41-a22f-07d49cb25ede/full/80,/0/default.jpg"
+        },
+        {
+          "@id": "https://iiif.bodleian.ox.ac.uk/iiif/canvas/02ddc913-ecab-471e-8ca3-6bd402bff215.json",
+          "@type": "sc:Canvas",
+          "label": "[f. 2 Cat (with Vaishnavite mark on forehead) with crayfish: perhaps represents a Bengali proverb or satire on religion]",
+          "width": 5344,
+          "height": 8158,
+          "thumbnail": "https://iiif.bodleian.ox.ac.uk/iiif/image/02ddc913-ecab-471e-8ca3-6bd402bff215/full/80,/0/default.jpg"
+        },
+        {
+          "@id": "https://iiif.bodleian.ox.ac.uk/iiif/canvas/33ce3177-0fdc-44fd-8325-24a298322023.json",
+          "@type": "sc:Canvas",
+          "label": "[f. 3. Two saul fishes]",
+          "width": 5176,
+          "height": 8026,
+          "thumbnail": "https://iiif.bodleian.ox.ac.uk/iiif/image/33ce3177-0fdc-44fd-8325-24a298322023/full/80,/0/default.jpg"
+        },
+        {
+          "@id": "https://iiif.bodleian.ox.ac.uk/iiif/canvas/9e8020d0-de39-476d-8205-6f009c0b31c9.json",
+          "@type": "sc:Canvas",
+          "label": "[f. 4 Mother and child]",
+          "width": 5212,
+          "height": 8218,
+          "thumbnail": "https://iiif.bodleian.ox.ac.uk/iiif/image/9e8020d0-de39-476d-8205-6f009c0b31c9/full/80,/0/default.jpg"
+        },
+        {
+          "@id": "https://iiif.bodleian.ox.ac.uk/iiif/canvas/fd4a9b51-c242-4094-9986-cae0e4e1c872.json",
+          "@type": "sc:Canvas",
+          "label": "[f. 5 A Peri, a fairy of Persian tradition]",
+          "width": 5248,
+          "height": 8134,
+          "thumbnail": "https://iiif.bodleian.ox.ac.uk/iiif/image/fd4a9b51-c242-4094-9986-cae0e4e1c872/full/80,/0/default.jpg"
+        }
+      ]
+    }
+  ]
+}

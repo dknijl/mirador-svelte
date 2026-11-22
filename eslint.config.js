@@ -1,9 +1,6 @@
 import js from '@eslint/js';
 import globals from 'globals';
 import { fixupPluginRules } from '@eslint/compat';
-import reactPlugin from 'eslint-plugin-react';
-import reactHooksPlugin from 'eslint-plugin-react-hooks';
-import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
 import importPlugin from 'eslint-plugin-import';
 import sveltePlugin from 'eslint-plugin-svelte';
 import svelteParser from 'svelte-eslint-parser';
@@ -24,7 +21,7 @@ export default [
 
   // Main configuration
   {
-    files: ['**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
+    files: ['**/*.js', '**/*.mjs', '**/*.cjs'],
 
     languageOptions: {
       ecmaVersion: 2025,
@@ -36,33 +33,21 @@ export default [
         page: true,
         vi: true,
       },
-      parserOptions: {
-        ecmaFeatures: {
-          jsx: true,
-        },
-      },
       sourceType: 'module',
     },
 
     plugins: {
-      // eslint-plugin-import, react, jsx-a11y, and jest-dom still declare ESLint
+      // eslint-plugin-import and jest-dom still declare ESLint
       // peer deps up to ^9; wrap them with fixupPluginRules so their internal use
       // of removed context APIs (e.g. getFilename, getSourceCode) keeps working.
       import: fixupPluginRules(importPlugin),
       'jest-dom': fixupPluginRules(jestDomPlugin),
-      'jsx-a11y': fixupPluginRules(jsxA11yPlugin),
-      react: fixupPluginRules(reactPlugin),
-      // react-hooks and testing-library already declare ESLint 10 support
-      'react-hooks': reactHooksPlugin,
       'testing-library': testingLibraryPlugin,
     },
 
     rules: {
-      ...reactPlugin.configs.recommended.rules,
-      ...reactHooksPlugin.configs.recommended.rules,
-      ...jsxA11yPlugin.configs.recommended.rules,
       ...jestDomPlugin.configs['flat/recommended'].rules,
-      ...testingLibraryPlugin.configs['flat/react'].rules,
+      ...testingLibraryPlugin.configs['flat/dom'].rules,
 
       camelcase: ['error', { properties: 'never', ignoreDestructuring: false }],
       complexity: ['warn', 25],
@@ -70,7 +55,7 @@ export default [
       'default-case': ['error', { commentPattern: '^no default$' }],
       'dot-notation': ['error', { allowKeywords: true }],
       eqeqeq: ['warn', 'smart'],
-      'import/extensions': ['error', 'ignorePackages', { js: 'never', jsx: 'never' }],
+      'import/extensions': ['error', 'ignorePackages', { js: 'never' }],
       'import/first': 'error',
       'import/newline-after-import': ['error', { count: 1 }],
       'import/no-anonymous-default-export': 'off',
@@ -78,7 +63,7 @@ export default [
       'import/no-duplicates': 'error',
       'import/no-extraneous-dependencies': 'off',
       'import/no-mutable-exports': 'error',
-      'import/no-unresolved': [2, { ignore: ['test-utils', '@vitejs/plugin-react', 'vite'] }],
+      'import/no-unresolved': [2, { ignore: ['test-utils', 'vite'] }],
       'import/prefer-default-export': 'off',
       'max-depth': ['warn', 4],
       'max-params': ['warn', 5],
@@ -118,19 +103,6 @@ export default [
       'prefer-rest-params': 'error',
       'prefer-template': 'warn',
       radix: 'error',
-      'react-hooks/exhaustive-deps': 'error',
-      'react/function-component-definition': 'off',
-      'react/jsx-filename-extension': [1, { extensions: ['.js', '.jsx'] }],
-      'react/jsx-props-no-spreading': 'off',
-      'react/jsx-uses-react': 'off',
-      'react/no-array-index-key': 'warn',
-      'react/no-danger': 'warn',
-      'react/no-unused-prop-types': 'warn',
-      'react/prefer-stateless-function': 'off',
-      'react/react-in-jsx-scope': 'off',
-      'react/require-default-props': [2, { functions: 'defaultArguments' }],
-      'react/self-closing-comp': 'error',
-      'react/style-prop-object': 'error',
       'testing-library/await-async-queries': 'error',
       'testing-library/no-await-sync-queries': 'error',
       'testing-library/no-debugging-utils': 'warn',
@@ -142,22 +114,19 @@ export default [
     settings: {
       'import/resolver': {
         node: {
-          extensions: ['.js', '.jsx', '.json'],
+          extensions: ['.js', '.json'],
           moduleDirectory: ['node_modules', 'src', '__tests__'],
         },
       },
       // eyeroll. https://github.com/import-js/eslint-plugin-import/issues/2703
-      'import/core-modules': ['@redux-devtools/extension'],
-      react: {
-        version: 'detect',
-      },
+      'import/core-modules': ['@redux-devtools/extension', 'svelte/reactivity'],
       'testing-library/utils-module': '@tests/utils/test-utils',
     },
   },
 
   // Test file overrides
   {
-    files: ['**/__tests__/**', '**/*.test.js', '**/*.test.jsx', 'setupTest.js'],
+    files: ['**/__tests__/**', '**/*.test.js', 'setupTest.js'],
     rules: {
       'no-undef': 'off', // Test globals (describe, it, expect, etc.) provided by vitest
     },
@@ -168,9 +137,6 @@ export default [
     languageOptions: {
       parser: svelteParser,
       parserOptions: {
-        parser: {
-          ecmaFeatures: { jsx: true },
-        },
         extraFileExtensions: ['.svelte'],
         sourceType: 'module',
       },
@@ -184,6 +150,8 @@ export default [
       },
     },
     rules: {
+      // Components strip viewer-only props before forwarding the remaining HTML attributes.
+      'no-unused-vars': ['error', { ignoreRestSiblings: true }],
       // SanitizedHtml is the single place that intentionally injects HTML that
       // DOMPurify has already cleaned.
       'svelte/no-at-html-tags': 'off',
@@ -191,7 +159,7 @@ export default [
   },
   // Ignore alias imports in test files
   {
-    files: ['__tests__/**/*.{js,jsx}'],
+    files: ['__tests__/**/*.js'],
     rules: {
       'import/no-unresolved': ['error', { ignore: ['^@src/', '^@tests/'] }],
     },

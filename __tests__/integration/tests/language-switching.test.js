@@ -1,6 +1,5 @@
 import { expect, it } from 'vitest';
-import { screen, fireEvent } from '@testing-library/react';
-import { setupIntegrationTestViewer } from '@tests/utils/test-utils';
+import { screen, fireEvent, setupIntegrationTestViewer } from '@tests/utils/test-utils';
 import config from '../mirador-configs/blank';
 
 describe('Application language', () => {

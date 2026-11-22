@@ -1,8 +1,8 @@
 import { expect, it } from 'vitest';
-import { screen, fireEvent, waitFor } from '@testing-library/react';
-import { setupIntegrationTestViewer } from '@tests/utils/test-utils';
+import { screen, fireEvent, waitFor, setupIntegrationTestViewer } from '@tests/utils/test-utils';
 import { http, HttpResponse } from 'msw';
 import { server } from '../../mocks/server';
+import brokenManifest from '../../fixtures/version-2/broken.json';
 import config from '../mirador-configs/blank';
 
 describe('Invalid response while adding manifest', () => {
@@ -18,7 +18,7 @@ describe('Invalid response while adding manifest', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Add resource' }));
 
     // Input a manifest URL
-    fireEvent.change(screen.getByLabelText('Resource location'), { target: { value: uri } });
+    fireEvent.input(screen.getByLabelText('Resource location'), { target: { value: uri } });
     fireEvent.click(screen.getByText('Add'));
   };
 
@@ -35,19 +35,22 @@ describe('Invalid response while adding manifest', () => {
       const listItem = document.querySelector(`[data-manifestid="${invalidUrl}"]`);
       expect(listItem).toBeInTheDocument();
     });
-  }, 2000); // Wait 2 seconds
+  });
 
-  // TODO: fix this. The error is not being rendered because of an overlay
-  it.skip('renders an error message when a manifest cannot be loaded (and allows it to be dismissed)', async () => {
+  it('renders an error message when a manifest cannot be loaded (and allows it to be dismissed)', async () => {
     const uri = 'http://localhost:4444/__tests__/fixtures/version-2/broken.json';
-    await addManifest('http://localhost:4444/__tests__/fixtures/version-2/broken.json');
+    server.use(http.get(uri, () => HttpResponse.json(brokenManifest)));
+    fireEvent.click(await screen.findByRole('button', { name: 'Start Here' }));
+    await addManifest(uri);
 
     // Try the added manifest item
     // eslint-disable-next-line testing-library/no-node-access
     const listItem = document.querySelector(`[data-manifestid="${uri}"]`);
     expect(listItem).toBeInTheDocument();
 
-    const errorMessage = await screen.findByText('The resource cannot be added');
+    const errorMessage = await screen.findByText('The resource cannot be added:');
     expect(errorMessage).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }));
+    await waitFor(() => expect(listItem).not.toBeInTheDocument());
   });
 });

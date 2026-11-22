@@ -1,9 +1,18 @@
 import { expect, it } from 'vitest';
-import { screen, fireEvent, within } from '@testing-library/react';
-import { setupIntegrationTestViewer } from '@tests/utils/test-utils';
+import { screen, fireEvent, within, setupIntegrationTestViewer } from '@tests/utils/test-utils';
+import { http, HttpResponse } from 'msw';
+import { server } from '../../mocks/server';
+import manifest from '../../fixtures/version-3/0001-mvm-image.json';
+import annotations from '../../fixtures/version-3/svg-annotations.json';
 import config from '../mirador-configs/blank';
 
 describe('Basic end to end Mirador', () => {
+  beforeEach(() => {
+    server.use(
+      http.get(manifest.id, () => HttpResponse.json(manifest)),
+      http.get('*/__tests__/fixtures/version-3/svg-annotations.json', () => HttpResponse.json(annotations)),
+    );
+  });
   setupIntegrationTestViewer(config);
 
   it('Adds a manifest and displays it', async () => {
@@ -15,9 +24,9 @@ describe('Basic end to end Mirador', () => {
 
     // Input a manifest URL
     // eslint-disable-next-line testing-library/no-node-access
-    fireEvent.change(document.getElementById('manifestURL'), {
+    fireEvent.input(document.getElementById('manifestURL'), {
       target: {
-        value: 'https://iiif.io/api/cookbook/recipe/0266-full-canvas-annotation/manifest.json',
+        value: manifest.id,
       },
     });
 
@@ -25,26 +34,24 @@ describe('Basic end to end Mirador', () => {
 
     // Click the added manifest item
     // eslint-disable-next-line testing-library/no-node-access
-    const listItem = document.querySelector(
-      '[data-manifestid="https://iiif.io/api/cookbook/recipe/0266-full-canvas-annotation/manifest.json"]',
-    );
+    const listItem = document.querySelector(`[data-manifestid="${manifest.id}"]`);
     const button = await within(listItem).findByRole('button');
     fireEvent.click(button);
 
     // The viewer is loaded with the manifest
     const element = await screen.findByRole('heading', {
-      name: /Picture of Göttingen taken during the 2019 IIIF Conference/i,
+      name: manifest.label.en[0],
     });
     expect(element).toBeInTheDocument();
 
     // Switching to elastic mode should keep the loaded manifest visible
     fireEvent.click(screen.getByRole('button', { name: 'Workspace settings' }));
     fireEvent.click(await screen.findByRole('menuitem', { name: /Select workspace type/i }));
-    fireEvent.click(await screen.findByRole('menuitem', { name: /^Elastic/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /^Elastic/i }));
 
     expect(
       await screen.findByRole('heading', {
-        name: /Picture of Göttingen taken during the 2019 IIIF Conference/i,
+        name: manifest.label.en[0],
       }),
     ).toBeInTheDocument();
   });

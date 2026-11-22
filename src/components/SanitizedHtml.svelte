@@ -18,9 +18,17 @@
 
   /** @type {{ classes?: { root?: string }, htmlString: string, ruleSet: string }} */
   let { classes = {}, htmlString, ruleSet, ...rest } = $props();
+  const attributes = $derived(
+    Object.fromEntries(
+      Object.entries(rest).filter(
+        ([key]) => !['failedImages', 'fallbackImage', 'notifyFailure', 'plugins', 'store', 't'].includes(key),
+      ),
+    ),
+  );
 
   const sanitized = $derived(DOMPurify.sanitize(htmlString, htmlRules[ruleSet]));
   const className = $derived([ns('third-party-html'), classes.root].filter(Boolean).join(' '));
 </script>
 
-<span class={className} {...rest}>{@html sanitized}</span>
+<!-- DOMPurify sanitizes the string using the selected allowlist before insertion. -->
+<span class={className} {...attributes}>{@html sanitized}</span>

@@ -88,8 +88,7 @@ describe('getVisibleNodeIds', () => {
     expect(visibleNodeIdsForTemporalFragment.length).toBe(2);
   });
 
-  // This test fails as there is no support for SpecificResource in manifesto yet
-  it.skip('contains node ids for ranges that contain a SpecificResource based on a current canvas', () => {
+  it('contains node ids for ranges that contain a SpecificResource based on a current canvas', () => {
     const specificResourceState = set(['windows', 'w1', 'visibleCanvases'], ['http://foo.test/1/canvas/c5'], prezi3State);
     const visibleNodeIds = getVisibleNodeIds(specificResourceState, { windowId: 'w1' });
     expect(visibleNodeIds).toEqual(expect.arrayContaining(['0-0', '0-0-0']));

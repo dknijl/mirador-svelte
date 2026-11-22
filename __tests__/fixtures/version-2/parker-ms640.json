@@ -1,0 +1,318 @@
+{
+  "manifest": {
+    "@context": "http://iiif.io/api/presentation/2/context.json",
+    "@id": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/manifest.json",
+    "@type": "sc:Manifest",
+    "label": "Cambridge, Corpus Christi College, MS 640: Antiphoner Leaf",
+    "attribution": "Images courtesy of The Parker Library, Corpus Christi College, Cambridge. Licensed under a Creative Commons Attribution-NonCommercial 4.0 International License. For higher resolution images suitable for scholarly or commercial publication, either in print or in an electronic format, please contact the Parker Library directly at parker-library@corpus.cam.ac.uk",
+    "seeAlso": {
+      "@id": "https://purl.stanford.edu/nb647fd0133.mods",
+      "profile": "application/mods+xml"
+    },
+    "sequences": [
+      {
+        "@id": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/normal",
+        "@type": "sc:Sequence",
+        "label": "Current page order",
+        "canvases": [
+          {
+            "@id": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/canvas/canvas-1",
+            "@type": "sc:Canvas",
+            "label": "f. 1r",
+            "height": 6656,
+            "width": 4451,
+            "images": [
+              {
+                "@id": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/imageanno/anno-1",
+                "@type": "oa:Annotation",
+                "motivation": "sc:painting",
+                "resource": {
+                  "@id": "https://stacks.stanford.edu/image/iiif/nb647fd0133/640_001_R_TC_46/full/full/0/default.jpg",
+                  "@type": "dctypes:Image",
+                  "format": "image/jpeg",
+                  "height": 6656,
+                  "width": 4451,
+                  "service": {
+                    "@id": "https://stacks.stanford.edu/image/iiif/nb647fd0133%252F640_001_R_TC_46",
+                    "profile": "http://iiif.io/api/image/2/level1.json",
+                    "@context": "http://iiif.io/api/image/2/context.json"
+                  }
+                },
+                "on": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/canvas/canvas-1"
+              }
+            ],
+            "otherContent": [
+              {
+                "@type": "sc:AnnotationList",
+                "@id": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/list/1r.json"
+              }
+            ]
+          },
+          {
+            "@id": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/canvas/canvas-2",
+            "@type": "sc:Canvas",
+            "label": "f. 1v",
+            "height": 6647,
+            "width": 4383,
+            "images": [
+              {
+                "@id": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/imageanno/anno-2",
+                "@type": "oa:Annotation",
+                "motivation": "sc:painting",
+                "resource": {
+                  "@id": "https://stacks.stanford.edu/image/iiif/nb647fd0133/640_001_V_TC_46/full/full/0/default.jpg",
+                  "@type": "dctypes:Image",
+                  "format": "image/jpeg",
+                  "height": 6647,
+                  "width": 4383,
+                  "service": {
+                    "@id": "https://stacks.stanford.edu/image/iiif/nb647fd0133%252F640_001_V_TC_46",
+                    "profile": "http://iiif.io/api/image/2/level1.json",
+                    "@context": "http://iiif.io/api/image/2/context.json"
+                  }
+                },
+                "on": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/canvas/canvas-2"
+              }
+            ],
+            "otherContent": [
+              {
+                "@type": "sc:AnnotationList",
+                "@id": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/list/1v.json"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "viewingHint": "paged",
+    "logo": {
+      "@id": "https://stacks.stanford.edu/image/iiif/wy534zh7137%2FSULAIR_rosette/full/400,/0/default.jpg",
+      "service": {
+        "@context": "http://iiif.io/api/image/2/context.json",
+        "@id": "https://stacks.stanford.edu/image/iiif/wy534zh7137%2FSULAIR_rosette",
+        "profile": "http://iiif.io/api/image/2/level1.json"
+      }
+    },
+    "thumbnail": {
+      "@id": "https://stacks.stanford.edu/image/iiif/nb647fd0133/640_001_R_TC_46/full/!400,400/0/default.jpg",
+      "@type": "dctypes:Image",
+      "format": "image/jpeg",
+      "service": {
+        "@context": "http://iiif.io/api/image/2/context.json",
+        "@id": "https://stacks.stanford.edu/image/iiif/nb647fd0133%252F640_001_R_TC_46",
+        "profile": "http://iiif.io/api/image/2/level1.json"
+      }
+    },
+    "license": "https://creativecommons.org/licenses/by-nc/4.0/",
+    "structures": [
+      {
+        "@type": "sc:Range",
+        "label": "Table of Contents",
+        "viewingHint": "top",
+        "@id": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/range/r0",
+        "ranges": [
+          "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/range/r1"
+        ]
+      },
+      {
+        "@id": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/range/r1",
+        "@type": "sc:Range",
+        "label": "Antiphoner leaf",
+        "within": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/range/r0",
+        "canvases": [
+          "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/canvas/canvas-1",
+          "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/canvas/canvas-2"
+        ]
+      }
+    ],
+    "description": "CCCC MS 640, a single leaf from a Spanish sixteenth-century Antiphoner, was given to the Parker Library by Andrew Johnson in 2008. The text is from First Vespers and Matins of the Seventh Sunday after Pentecost. There are large calligraphic initials tinted in pale yellow for the responsory and versicle."
+  },
+  "annotationLists": [
+    {
+      "@context": "http://www.shared-canvas.org/ns/context.json",
+      "@type": "sc:AnnotationList",
+      "@id": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/list/1r.json",
+      "resources": [
+        {
+          "@id": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/annotation/6f320a39-2001-4517-9f0a-0d0a04d1274b",
+          "@type": "oa:Annotation",
+          "motivation": "oa:commenting",
+          "on": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/canvas/canvas-1#xywh=0,0,4451,6656",
+          "resource": {
+            "@id": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/res/5483d3fd-fa2d-4b77-bebc-b515da248829",
+            "@type": "cnt:ContentAsText",
+            "format": "text/plain",
+            "chars": "Musical notation for antiphon, verse and responsory. Begins imperfectly in antiphon for Magnificat at First Vespers for the Seventh Sunday after Pentecost: (Unxerunt Salomonem Sadoc sacerdos et Nathan pro)pheta regem in Gihon: et procedentes laeti dixerunt uiuat rex Salomon seculorum. This differs slightly from the wording of the antiphon in the 1568 editio princeps of the Breviarium Romanum"
+          }
+        },
+        {
+          "@id": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/annotation/e8977721-173d-48a4-a1d0-2b94e6393e03",
+          "@type": "oa:Annotation",
+          "motivation": "oa:commenting",
+          "on": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/canvas/canvas-1#xywh=0,0,4451,6656",
+          "resource": {
+            "@id": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/res/141c0294-ecdd-433b-af85-a21b45882c18",
+            "@type": "cnt:ContentAsText",
+            "format": "text/plain",
+            "chars": "Rubric: Historia Salomonis Ad Vesperam"
+          }
+        },
+        {
+          "@id": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/annotation/24e717b4-d98e-4d20-b4c2-1942828bcc5a",
+          "@type": "oa:Annotation",
+          "motivation": "oa:commenting",
+          "on": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/canvas/canvas-1#xywh=0,0,4451,6656",
+          "resource": {
+            "@id": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/res/0fe1b5f2-2ba6-4b3e-b374-02ce98501d41",
+            "@type": "cnt:ContentAsText",
+            "format": "text/plain",
+            "chars": "3-line calligraphic ornamental initial tinted in pale yellow for the versicle: Dilectio illius custodi"
+          }
+        }
+      ]
+    },
+    {
+      "@context": "http://www.shared-canvas.org/ns/context.json",
+      "@type": "sc:AnnotationList",
+      "@id": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/list/1v.json",
+      "resources": [
+        {
+          "@id": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/annotation/153c2a89-6678-4960-bbf8-36fbe79800ce",
+          "@type": "oa:Annotation",
+          "motivation": "oa:commenting",
+          "on": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/canvas/canvas-2#xywh=0,0,4383,6647",
+          "resource": {
+            "@id": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/res/4e05d8af-2abf-45da-b4a6-ade476117928",
+            "@type": "cnt:ContentAsText",
+            "format": "text/plain",
+            "chars": "Rubric: Ad Matutinum Resp. XII"
+          }
+        },
+        {
+          "@id": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/annotation/a65e4e29-b8fc-4249-b79e-3f3b517feb52",
+          "@type": "oa:Annotation",
+          "motivation": "oa:commenting",
+          "on": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/canvas/canvas-2#xywh=0,0,4383,6647",
+          "resource": {
+            "@id": "https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/res/ce793c5f-f7de-49b9-bf49-cd4f17639353",
+            "@type": "cnt:ContentAsText",
+            "format": "text/plain",
+            "chars": "3-line calligraphic ornamental initial tinted in pale yellow for the responsory: Audi fili mi disciplinam Patris"
+          }
+        }
+      ]
+    }
+  ],
+  "imageInformation": [
+    {
+      "@context": "http://iiif.io/api/image/2/context.json",
+      "@id": "https://stacks.stanford.edu/image/iiif/nb647fd0133/640_001_R_TC_46",
+      "protocol": "http://iiif.io/api/image",
+      "width": 4451,
+      "height": 6656,
+      "sizes": [
+        {
+          "width": 70,
+          "height": 104
+        },
+        {
+          "width": 139,
+          "height": 208
+        },
+        {
+          "width": 278,
+          "height": 416
+        },
+        {
+          "width": 556,
+          "height": 832
+        },
+        {
+          "width": 1113,
+          "height": 1664
+        },
+        {
+          "width": 2226,
+          "height": 3328
+        },
+        {
+          "width": 4451,
+          "height": 6656
+        }
+      ],
+      "tiles": [
+        {
+          "width": 1024,
+          "height": 1024,
+          "scaleFactors": [
+            1,
+            2,
+            4,
+            8,
+            16,
+            32,
+            64
+          ]
+        }
+      ],
+      "profile": [
+        "http://iiif.io/api/image/2/level2.json"
+      ]
+    },
+    {
+      "@context": "http://iiif.io/api/image/2/context.json",
+      "@id": "https://stacks.stanford.edu/image/iiif/nb647fd0133/640_001_V_TC_46",
+      "protocol": "http://iiif.io/api/image",
+      "width": 4383,
+      "height": 6647,
+      "sizes": [
+        {
+          "width": 68,
+          "height": 104
+        },
+        {
+          "width": 137,
+          "height": 208
+        },
+        {
+          "width": 274,
+          "height": 415
+        },
+        {
+          "width": 548,
+          "height": 831
+        },
+        {
+          "width": 1096,
+          "height": 1662
+        },
+        {
+          "width": 2192,
+          "height": 3324
+        },
+        {
+          "width": 4383,
+          "height": 6647
+        }
+      ],
+      "tiles": [
+        {
+          "width": 1024,
+          "height": 1024,
+          "scaleFactors": [
+            1,
+            2,
+            4,
+            8,
+            16,
+            32,
+            64
+          ]
+        }
+      ],
+      "profile": [
+        "http://iiif.io/api/image/2/level2.json"
+      ]
+    }
+  ]
+}

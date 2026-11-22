@@ -1,6 +1,5 @@
-import { act } from '@testing-library/react';
+import { act, setupIntegrationTestViewer } from '@tests/utils/test-utils';
 import { expect, it } from 'vitest';
-import { setupIntegrationTestViewer } from '@tests/utils/test-utils';
 import config from '../mirador-configs/index';
 
 describe('Import/Export state', () => {

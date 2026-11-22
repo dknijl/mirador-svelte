@@ -1,15 +1,9 @@
-import { defineConfig, esmExternalRequirePlugin } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import fs from 'fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'url';
 import { globSync } from 'glob';
-import * as packageJson from './package.json' with { type: 'json' };
-
-const peers = Object.keys(packageJson.peerDependencies);
-const peerPatterns = [...peers, ...peers.map((peer) => new RegExp(`^${peer}/`))];
-
 /**
  * Vite configuration
  */
@@ -42,14 +36,10 @@ export default defineConfig({
             name: 'Kokudor',
           },
           rolldownOptions: {
-            external: (id) => id.startsWith('__tests__/'),
+            external: (id) => id === 'svelte' || id.startsWith('svelte/') || id.startsWith('__tests__/'),
             output: {
               assetFileNames: 'mirador.[ext]',
               exports: 'named',
-              globals: {
-                react: 'React',
-                'react-dom': 'ReactDOM',
-              },
             },
           },
           sourcemap: true,
@@ -60,9 +50,7 @@ export default defineConfig({
     'process.env.NODE_ENV': JSON.stringify('production'),
   },
   plugins: [
-    svelte(),
-    react(),
-    !process.env.NETLIFY && esmExternalRequirePlugin({ external: peerPatterns }),
+    svelte({ emitCss: false }),
     // Copy fixtures to dist for Netlify
     process.env.NETLIFY && {
       closeBundle: async () => {

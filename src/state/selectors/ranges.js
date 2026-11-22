@@ -14,7 +14,11 @@ function rangeContainsCanvasId(range, canvasId) {
       return true;
     }
   }
-  return false;
+  return (range.getProperty('items') || []).some((item) => {
+    if (item?.type !== 'SpecificResource') return false;
+    const source = typeof item.source === 'string' ? item.source : item.source?.id;
+    return typeof source === 'string' && Utils.normalisedUrlsMatch(source, canvasId);
+  });
 }
 
 /** */

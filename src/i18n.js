@@ -1,5 +1,5 @@
 import { createInstance } from 'i18next';
-import { initReactI18next } from 'react-i18next';
+import downloadTranslations from './plugins/imageDownload/translations';
 import ar from './locales/ar/translation.json';
 import de from './locales/de/translation.json';
 import en from './locales/en/translation.json';
@@ -54,11 +54,15 @@ function createI18nInstance(i18nConfig = {}) {
     ta,
   };
 
+  Object.entries(downloadTranslations).forEach(([language, messages]) => {
+    resources[language] = { translation: { ...resources[language].translation, ...messages } };
+  });
+
   const instance = createInstance();
-  instance.use(initReactI18next).init({
+  instance.init({
     fallbackLng: 'en',
     interpolation: {
-      escapeValue: false, // react is already safe from xss
+      escapeValue: false,
     },
     lng: 'en',
     resources,

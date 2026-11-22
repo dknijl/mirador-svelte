@@ -37,6 +37,25 @@ Save this HTML alongside the `dist` directory and serve it over HTTP.
 </script>
 ```
 
+### Downloading images
+
+Choose **Download** in a window’s bottom toolbar. The built-in Svelte dialog lists images for the visible pages, sizes offered by the IIIF server, and files linked by the manifest. In single-page view, zoom in to download the visible region when the service supports cropping. Some image servers open files in a new tab where you can save them.
+
+### Svelte plugins
+
+Pass a compiled Svelte 5 component to an extension point when creating the viewer. For example, this adds a control to each window toolbar.
+
+```js
+import { viewer } from 'mirador';
+import WindowAction from './WindowAction.svelte';
+
+viewer(config, [{ target: 'WindowTopBarPluginArea', mode: 'add', component: WindowAction }]);
+```
+
+A plugin component receives the target's props and the viewer's Redux store. Plugins can supply reducers, sagas, a state selector through `mapStateToProps`, and actions through `mapDispatchToProps`. A `wrap` plugin receives a Svelte `children` snippet. Render it with `{@render children()}` to include the wrapped content. The first registered wrapper is outermost. The ESM build shares the application's Svelte runtime so plugins and the viewer can participate in the same component tree.
+
+To register a sidebar panel, set `companionWindowKey` on its component registration. Register its tab component with `target: 'WindowSideBarButtons'`, `mode: 'add'`, and a `value` matching that key. Selecting the tab opens the panel for that window.
+
 ### Example Action
 
 Add a window:
@@ -95,9 +114,8 @@ The error message is translatable via the `imageFailedToLoad` translation key. D
 
 ### Local instance
 
-The following browser extensions are useful for debugging a local development instance of Kokudor:
+Inspect the viewer store and dispatched actions during local development with Redux DevTools.
 
- - [React DevTools](https://github.com/facebook/react-devtools)
  - [Redux DevTools](https://github.com/zalmoxisus/redux-devtools-extension)
 
 ### Test suite

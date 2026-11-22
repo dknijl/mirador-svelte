@@ -1,15 +1,34 @@
 import { expect, it } from 'vitest';
-import { setupIntegrationTestViewer } from '@tests/utils/test-utils';
-import { screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { setupIntegrationTestViewer, screen, fireEvent } from '@tests/utils/test-utils';
+import { http, HttpResponse } from 'msw';
+import { server } from '../../mocks/server';
+import manifest from '../../fixtures/version-2/multipleSequences.json';
 import config from '../mirador-configs/multiple-sequences';
 
 describe('Window Sidebar Sequence Dropdown', () => {
+  beforeEach(() => {
+    server.use(
+      http.get('*/__tests__/fixtures/version-2/multipleSequences.json', () => HttpResponse.json(manifest)),
+      ...manifest.sequences.flatMap((sequence) =>
+        sequence.canvases.map((canvas) => {
+          const image = canvas.images[0].resource;
+          const id = image.service['@id'];
+          return http.get(`${id}/info.json`, () =>
+            HttpResponse.json({
+              ...image.service,
+              '@id': id,
+              width: canvas.width,
+              height: canvas.height,
+            }),
+          );
+        }),
+      ),
+    );
+  });
   setupIntegrationTestViewer(config);
 
-  // TODO: find a suitable manifest in the wild, so that we don't have to run
-  // the server :4444 in the background just for this test.
-  // See mirador-configs/multiple-sequences.js for the form of manifest used in this test.
-  it.skip('allows the user to switch the sequence', async () => {
+  it('allows the user to switch the sequence', async ({ miradorInstance }) => {
     // Make sure we have the manifest
     const element = await screen.findByRole('heading', {
       name: /Urnäsch, Gemeindearchiv Urnäsch, Fragment/i,
@@ -24,19 +43,16 @@ describe('Window Sidebar Sequence Dropdown', () => {
     fireEvent.click(indexButton);
 
     // Confirm initial sequence (1740) is loaded
-    const sequenceWrapper = await screen.findByTestId('sequence-select');
-    // eslint-disable-next-line testing-library/no-node-access
-    const sequenceInput = sequenceWrapper.querySelector('input[name="sequenceId"]');
+    const sequenceInput = await screen.findByRole('combobox', { name: /sequence/i });
 
     expect(sequenceInput).toHaveValue('https://www.e-codices.unifr.ch/metadata/iiif/gau-Fragment/sequence/Sequence-1740.json');
 
     // Change the sequence (1741)
-    fireEvent.change(sequenceInput, {
-      target: {
-        value: 'https://www.e-codices.unifr.ch/metadata/iiif/gau-Fragment/sequence/Sequence-1741.json',
-      },
-    });
+    await userEvent.selectOptions(sequenceInput, screen.getByRole('option', { name: /Lesefreundliche Sequenz/i }));
 
-    expect(sequenceInput).toHaveValue('https://www.e-codices.unifr.ch/metadata/iiif/gau-Fragment/sequence/Sequence-1741.json');
+    const nextId = 'https://www.e-codices.unifr.ch/metadata/iiif/gau-Fragment/sequence/Sequence-1741.json';
+    expect(sequenceInput).toHaveValue(nextId);
+    const [viewerWindow] = Object.values(miradorInstance.store.getState().windows);
+    expect(viewerWindow.sequenceId).toBe(nextId);
   });
 });

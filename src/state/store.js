@@ -1,7 +1,7 @@
 // Topics for understanding
 // redux modules for nested stores
 // state normalisation
-// migration from legacy Redux to React Toolkit (RTK)
+// migration from legacy Redux to Redux Toolkit (RTK)
 
 import createSagaMiddleware from 'redux-saga';
 import { configureStore } from '@reduxjs/toolkit';

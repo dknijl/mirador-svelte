@@ -1,6 +1,5 @@
 import { expect, it } from 'vitest';
-import { screen, fireEvent, within } from '@testing-library/react';
-import { setupIntegrationTestViewer, safeFindByRole } from '@tests/utils/test-utils';
+import { screen, fireEvent, within, setupIntegrationTestViewer, safeFindByRole } from '@tests/utils/test-utils';
 import config from '../mirador-configs/single-van-gogh';
 
 // TODO: sometimes this is failing with

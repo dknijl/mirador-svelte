@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/dom';
 
 /**
  * Detects and fails early if an error dialog is rendered in the app.

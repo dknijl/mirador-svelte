@@ -84,6 +84,16 @@
     "maximizeWindow": "ウインドウを最大化",
     "minimizeWindow": "ウインドウを最小化",
     "mirador": "Kokudor",
+    "mirador-dl-plugin": {
+      "close": "閉じる",
+      "download": "ダウンロード",
+      "empty": "このページにはダウンロードできるファイルがありません。",
+      "full_size": "原寸大（{{width}} × {{height}} ピクセル）",
+      "other_download": "その他のダウンロード",
+      "whole_image": "画像全体（{{width}} × {{height}} ピクセル）",
+      "whole_image_labeled": "画像全体（{{label}}）",
+      "zoomed_region": "表示中の範囲（{{width}} × {{height}} ピクセル）"
+    },
     "miradorResources": "Kokudor資料",
     "miradorViewer": "Kokudorビューワ",
     "more": "さらに...",

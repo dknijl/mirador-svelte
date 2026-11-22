@@ -1,28 +1,31 @@
 import { expect, it } from 'vitest';
-import { screen, fireEvent } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/dom';
+import { http, HttpResponse } from 'msw';
 import { setupIntegrationTestViewer } from '@tests/utils/test-utils';
-import settings from '../mirador-configs/plugin-state';
+import { server } from '../../mocks/server';
+import manifest from '../../fixtures/version-3/0001-mvm-image.json';
+import annotations from '../../fixtures/version-3/svg-annotations.json';
+import { stateDependentPlugin } from '../plugins';
 
-describe('how plugins relate to state', () => {
-  setupIntegrationTestViewer(settings.config, settings.plugins);
+describe('Svelte plugin store access', () => {
+  beforeEach(() => {
+    server.use(
+      http.get(manifest.id, () => HttpResponse.json(manifest)),
+      http.get('*/__tests__/fixtures/version-3/svg-annotations.json', () => HttpResponse.json(annotations)),
+    );
+  });
+  setupIntegrationTestViewer({ windows: [{ manifestId: manifest.id }] }, [stateDependentPlugin]);
 
-  it('plugin can read from state', async () => {
-    const text = 'Plugin:https://dms-data.stanford.edu/data/manifests/Parker/nb647fd0133/manifest.json';
-    const elementWithText = await screen.findByText(text);
-    expect(elementWithText).toHaveTextContent(text);
+  it('renders props selected from the viewer store', async () => {
+    expect(await screen.findByRole('button', { name: `Plugin:${manifest.id}` }, { timeout: 8000 })).toBeInTheDocument();
   });
 
-  it('plugin reducers should be included to state', async (context) => {
-    // Test if the plugin state exists in the store
-    const { pluginState } = context.miradorInstance.store.getState();
-    expect(pluginState).toBeDefined();
+  it('registers the plugin reducer', ({ miradorInstance }) => {
+    expect(miradorInstance.store.getState().pluginState.someNumber).toBe(0);
   });
 
-  // TODO: not working, likely due to thumnails not loading, see thumbnail-navigation.test.js
-  it.skip('plugin can dispatch custom action to write to its reducer', async (context) => {
-    expect(context.miradorInstance.store.getState().pluginState.canvasChangeCount).toBe(0);
-    const nextCanvas = screen.getByRole('button', { name: 'Next item' });
-    fireEvent.click(nextCanvas);
-    expect(await context.miradorInstance.store.getState().pluginState.canvasChangeCount).toBe(1);
+  it('dispatches from a Svelte event handler to the plugin reducer', async ({ miradorInstance }) => {
+    fireEvent.click(await screen.findByRole('button', { name: `Plugin:${manifest.id}` }, { timeout: 8000 }));
+    expect(miradorInstance.store.getState().pluginState.someNumber).toBe(1);
   });
 });

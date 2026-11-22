@@ -11,8 +11,6 @@ export default {
     // travel with the JS instead of a separate stylesheet nobody would load.
     // Svelte de-duplicates injection per component.
     css: 'injected',
-    // Svelte 5 runes mode is the default; stating it keeps the intent explicit
-    // for components that are mounted from React through the bridge.
     runes: true,
   },
 };

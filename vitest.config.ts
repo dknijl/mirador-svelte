@@ -1,30 +1,22 @@
 import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { fileURLToPath } from 'url';
 
 export default defineConfig({
-  oxc: {
-    exclude: [],
-    include: /(src|__tests__)\/.*\.jsx?$/,
-  },
-  optimizeDeps: {
-    rolldownOptions: {
-      moduleTypes: {
-        '.js': 'jsx',
-      },
-    },
-  },
-  plugins: [svelte(), react()],
+  plugins: [svelte()],
   resolve: {
     alias: [
       { find: '@tests', replacement: fileURLToPath(new URL('./__tests__', import.meta.url)) },
       { find: '@src', replacement: fileURLToPath(new URL('./src', import.meta.url)) },
       // Vitest resolves package conditions for node, which would pick Svelte's
       // server build (where `mount` is unavailable). Adding the global
-      // `browser` condition instead breaks msw/node, so only the Svelte root
-      // entry is pointed at its client build.
+      // `browser` condition breaks msw/node, so select the client entry for each
+      // Svelte module that owns DOM lifecycle or subscriptions.
       { find: /^svelte$/, replacement: fileURLToPath(new URL('./node_modules/svelte/src/index-client.js', import.meta.url)) },
+      {
+        find: /^svelte\/reactivity$/,
+        replacement: fileURLToPath(new URL('./node_modules/svelte/src/reactivity/index-client.js', import.meta.url)),
+      },
     ],
   },
   test: {
@@ -39,7 +31,7 @@ export default defineConfig({
     },
     exclude: ['node_modules'],
     globals: true,
-    include: ['**/*.test.js', '**/*.test.jsx'],
+    include: ['**/*.test.js'],
     sequence: {
       shuffle: true,
     },

@@ -1,6 +1,5 @@
 import { expect, it } from 'vitest';
-import { screen, waitFor, fireEvent, within } from '@testing-library/react';
-import { setupIntegrationTestViewer } from '@tests/utils/test-utils';
+import { screen, fireEvent, within, setupIntegrationTestViewer } from '@tests/utils/test-utils';
 import settings from '../mirador-configs/plugin-add';
 
 describe('add two plugins to <WorkspaceControlPanelButtons>', () => {
@@ -13,17 +12,13 @@ describe('add two plugins to <WorkspaceControlPanelButtons>', () => {
   });
 
   it('wrapped and added plugins are present', async () => {
+    fireEvent.click(screen.getByRole('button', { name: /window options/i }));
     const pluginDiv = screen.getByTestId('wrapped-plugin-with-adds');
     // The umbrella icon that this component wraps
     // eslint-disable-next-line testing-library/no-node-access
     expect(pluginDiv.querySelector('.umbrella')).toBeInTheDocument();
 
-    const button = within(pluginDiv).getByRole('button');
-    fireEvent.click(button);
-
-    await waitFor(() => {
-      // Plugin C is added by the wrapped plugin
-      expect(screen.getByText('Plugin C')).toBeInTheDocument();
-    });
+    // Plugin C is added by the wrapped plugin.
+    expect(within(pluginDiv).getByText('Plugin C')).toBeInTheDocument();
   });
 });

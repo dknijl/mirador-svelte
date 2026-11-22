@@ -1,6 +1,5 @@
 import { expect, it } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
-import { setupIntegrationTestViewer } from '@tests/utils/test-utils';
+import { screen, waitFor, setupIntegrationTestViewer } from '@tests/utils/test-utils';
 import config from '../mirador-configs/initial-viewer-config';
 
 describe('initialViewerConfig', () => {
