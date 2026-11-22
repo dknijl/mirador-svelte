@@ -2,9 +2,9 @@ import { compose } from 'redux';
 import { connect } from 'react-redux';
 import { withPlugins } from '../extend/withPlugins';
 import * as actions from '../state/actions';
-import MiradorCanvas from '../lib/MiradorCanvas';
 import {
   getCanvases,
+  getCompanionAreaVisibility,
   getVisibleCanvases,
   getCompanionWindowsForPosition,
   getAnnotationResourcesByMotivation,
@@ -21,9 +21,19 @@ import { WindowSideBarButtons } from '../components/WindowSideBarButtons';
  * @memberof WindowSideButtons
  * @private
  */
-const mapDispatchToProps = (dispatch, { windowId }) => ({
-  addCompanionWindow: (content) => dispatch(actions.addOrUpdateCompanionWindow(windowId, { content, position: 'left' })),
-});
+const mapDispatchToProps = (dispatch, { windowId }) => {
+  // The panel menu sits in the window's bottom bar instead of a rail that is
+  // already on screen, so choosing a panel is also what reveals it.
+  const openPanel = (content) => {
+    dispatch(actions.addOrUpdateCompanionWindow(windowId, { content, position: 'left' }));
+    dispatch(actions.updateWindow(windowId, { sideBarOpen: true }));
+  };
+
+  return {
+    addCompanionWindow: openPanel,
+    closeSideBar: () => dispatch(actions.updateWindow(windowId, { sideBarOpen: false })),
+  };
+};
 
 /** */
 function hasLayers(canvases, getMiradorCanvas) {
@@ -67,7 +77,9 @@ const mapStateToProps = (state, { windowId }) => ({
   hasSearchResults: hasSearchResults(state, { windowId }),
   hasSearchService: getManifestSearchService(state, { windowId }) !== null,
   panels: getWindowConfig(state, { windowId }).panels,
-  sideBarPanel: (getCompanionWindowsForPosition(state, { position: 'left', windowId })[0] || {}).content,
+  sideBarPanel: getCompanionAreaVisibility(state, { position: 'left', windowId })
+    ? getCompanionWindowsForPosition(state, { position: 'left', windowId })[0]?.content
+    : undefined,
 });
 
 const enhance = compose(connect(mapStateToProps, mapDispatchToProps), withPlugins('WindowSideBarButtons'));

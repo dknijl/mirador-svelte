@@ -209,5 +209,5 @@ IIIFThumbnail.propTypes = {
     width: PropTypes.number,
   }),
   // eslint-disable-next-line react/no-unused-prop-types
-  variant: PropTypes.oneOf(['inside', 'outside']),
+  variant: PropTypes.oneOf(['inside', 'outside', 'numbered']),
 };

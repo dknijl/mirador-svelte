@@ -7,11 +7,13 @@ import SearchPanel from '../containers/SearchPanel';
 import LayersPanel from '../containers/LayersPanel';
 import CustomPanel from '../containers/CustomPanel';
 import WindowSideBarCollectionPanel from '../containers/WindowSideBarCollectionPanel';
+import CaptionTocPanel from '../containers/CaptionTocPanel';
 
 const map = {
   annotations: WindowSideBarAnnotationsPanel,
   attribution: AttributionPanel,
   canvas: WindowSideBarCanvasPanel,
+  captionToc: CaptionTocPanel,
   collection: WindowSideBarCollectionPanel,
   custom: CustomPanel,
   info: WindowSideBarInfoPanel,

@@ -15,3 +15,4 @@ export * from './utils';
 export * from './viewer';
 export * from './thumbnails';
 export * from './wrappers';
+export * from './captionToc';

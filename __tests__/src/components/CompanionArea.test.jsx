@@ -104,4 +104,26 @@ describe('CompanionArea', () => {
 
     expect(screen.queryByRole('button', { name: 'Collapse sidebar' })).not.toBeInTheDocument();
   });
+
+  describe('left-hand areas', () => {
+    /** width reserved for the left sidebar pane's container, in px */
+    const companionContainerMinWidth = (areaSelector) => {
+      /* eslint-disable testing-library/no-node-access */
+      const area = document.querySelector(areaSelector);
+      return getComputedStyle(area.querySelector('.mirador-companion-windows')).minWidth;
+      /* eslint-enable testing-library/no-node-access */
+    };
+
+    it('reserves the sidebar width for the left sidebar pane', () => {
+      createWrapper({ position: 'left' });
+      expect(companionContainerMinWidth('.mirador-companion-area-left')).toBe('235px');
+    });
+
+    it('does not reserve the sidebar width for the far-left thumbnail strip', () => {
+      createWrapper({ position: 'far-left' });
+      // The strip is sized from thumbnailNavigation.width, so a 235px minimum
+      // would leave a gutter between the strip and the viewer.
+      expect(companionContainerMinWidth('.mirador-companion-area-far-left')).not.toBe('235px');
+    });
+  });
 });

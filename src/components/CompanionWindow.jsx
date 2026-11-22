@@ -20,7 +20,14 @@ import { getCompanionWindowLocale } from '../state/selectors/companionWindows';
 
 const Root = styled(Paper, { name: 'CompanionWindow', slot: 'root' })({});
 const StyledToolbar = styled(Toolbar, { name: 'CompanionWindow', slot: 'toolbar' })({});
-const StyledTitle = styled(Typography, { name: 'CompanionWindow', slot: 'title' })({});
+const StyledTitle = styled(Typography, { name: 'CompanionWindow', slot: 'title' })(({ theme }) => ({
+  // A section label rather than a sentence: uppercase and tracked out, which is
+  // how the panel headers read in the reference layout.
+  ...theme.typography.subtitle2,
+  letterSpacing: '0.08em',
+  paddingLeft: theme.spacing(1),
+  textTransform: 'uppercase',
+}));
 const StyledTitleControls = styled('div', { name: 'CompanionWindow', slot: 'controls' })({});
 const Contents = styled(Paper, { name: 'CompanionWindow', slot: 'contents' })({});
 const StyledRnd = styled(Rnd, { name: 'CompanionWindow', slot: 'resize' })({});
@@ -63,17 +70,6 @@ export const CompanionWindow = forwardRef((props, innerRef) => {
 
   /** */
   const resizeHandles = (() => {
-    const positions = {
-      ltr: {
-        default: 'left',
-        opposite: 'right',
-      },
-      rtl: {
-        default: 'right',
-        opposite: 'left',
-      },
-    };
-
     const base = {
       bottom: false,
       bottomLeft: false,
@@ -85,12 +81,8 @@ export const CompanionWindow = forwardRef((props, innerRef) => {
       topRight: false,
     };
 
-    if (position === 'right' || position === 'far-right') {
-      return { ...base, [positions[direction].default]: true };
-    }
-
-    if (position === 'left') {
-      return { ...base, [positions[direction].opposite]: true };
+    if (position === 'left' || position === 'right' || position === 'far-right') {
+      return { ...base, [direction === 'rtl' ? 'right' : 'left']: true };
     }
 
     if (position === 'bottom' || position === 'far-bottom') {

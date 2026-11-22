@@ -28,8 +28,8 @@ describe('WorkspaceArea', () => {
     expect(screen.getByRole('button', { name: 'Workspace settings' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Workspace options' })).toBeInTheDocument();
 
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Mirador viewer');
-    expect(screen.getByRole('main')).toHaveTextContent('Welcome to Mirador');
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Kokudor viewer');
+    expect(screen.getByRole('main')).toHaveTextContent('Welcome to Kokudor');
 
     // eslint-disable-next-line testing-library/no-node-access, testing-library/no-container
     expect(container.querySelector('.mirador-background-plugin-area')).toBeInTheDocument();
@@ -47,7 +47,7 @@ describe('WorkspaceArea', () => {
     it('should render WorkspaceAdd when isWorkspaceAddVisible is true', () => {
       createWrapper({ isWorkspaceAddVisible: true });
 
-      expect(screen.queryByRole('heading', { level: 1, name: 'Mirador viewer' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { level: 1, name: 'Kokudor viewer' })).not.toBeInTheDocument();
       expect(screen.getByRole('main')).toHaveTextContent('Your resource list is empty');
       expect(within(screen.getByRole('main')).getByRole('button', { name: 'Add resource' })).toBeInTheDocument();
     });

@@ -1,6 +1,7 @@
 import { useContext } from 'react';
 import AddCircleIcon from '@mui/icons-material/AddCircleOutlineSharp';
 import RemoveCircleIcon from '@mui/icons-material/RemoveCircleOutlineSharp';
+import RotateRightIcon from '@mui/icons-material/RotateRightSharp';
 import { styled } from '@mui/material/styles';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
@@ -38,6 +39,10 @@ export function ZoomControls({ windowId = '', updateViewport = () => {}, viewer 
   // viewer can be explicitly null (not just absent), which the default
   // parameter above doesn't catch.
   const currentZoom = liveZoom ?? viewer?.zoom;
+  // Rotation comes from the same place and for the same reason: the live
+  // viewport settles first, redux catches up later. viewer can be explicitly
+  // null, hence the optional chain.
+  const currentRotation = viewport?.getRotation?.() ?? viewer?.rotation ?? 0;
 
   /** */
   const handleZoomInClick = () => {
@@ -53,6 +58,12 @@ export function ZoomControls({ windowId = '', updateViewport = () => {}, viewer 
     updateViewport(windowId, {
       zoom: minZoom == null ? nextZoom : Math.max(nextZoom, minZoom),
     });
+  };
+
+  /** Rotate a quarter turn clockwise from wherever the viewer currently is. */
+  const handleRotateClick = () => {
+    const nextRotation = (((currentRotation + 90) % 360) + 360) % 360;
+    updateViewport(windowId, { rotation: nextRotation });
   };
 
   return (
@@ -74,6 +85,9 @@ export function ZoomControls({ windowId = '', updateViewport = () => {}, viewer 
       <MiradorMenuButton aria-label={t('zoomReset')} onClick={() => zoomToWorld(false)}>
         <RestoreZoomIcon />
       </MiradorMenuButton>
+      <MiradorMenuButton aria-label={t('rotate')} onClick={handleRotateClick}>
+        <RotateRightIcon />
+      </MiradorMenuButton>
     </StyledZoomControlsWrapper>
   );
 }
@@ -81,6 +95,7 @@ export function ZoomControls({ windowId = '', updateViewport = () => {}, viewer 
 ZoomControls.propTypes = {
   updateViewport: PropTypes.func,
   viewer: PropTypes.shape({
+    rotation: PropTypes.number,
     x: PropTypes.number,
     y: PropTypes.number,
     zoom: PropTypes.number,

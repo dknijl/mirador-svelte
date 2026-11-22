@@ -49,7 +49,7 @@ describe('Workspace', () => {
     it('should render <WorkspaceElastic/> properly', () => {
       const { container } = createWrapper({ workspaceType: 'elastic' });
 
-      expect(screen.getByRole('heading', { name: 'Mirador viewer' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Kokudor viewer' })).toBeInTheDocument();
 
       expect(container.querySelector('.mirador-workspace.react-draggable')).toBeInTheDocument();
     });
@@ -58,7 +58,7 @@ describe('Workspace', () => {
     it('should render <WorkspaceMosaic/> properly', () => {
       const { container } = createWrapper();
 
-      expect(screen.getByRole('heading', { name: 'Mirador viewer' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Kokudor viewer' })).toBeInTheDocument();
 
       expect(container.querySelector('.mirador-mosaic')).toBeInTheDocument();
       expect(container.querySelector('.drop-target-container')).toBeInTheDocument();
@@ -68,7 +68,7 @@ describe('Workspace', () => {
     it('should render <Window/> components as list', () => {
       createWrapper({ workspaceType: 'bubu' });
 
-      expect(screen.getByRole('heading', { name: 'Mirador viewer' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Kokudor viewer' })).toBeInTheDocument();
       expect(screen.getAllByLabelText('Window:')).toHaveLength(2);
     });
   });
@@ -76,7 +76,7 @@ describe('Workspace', () => {
     it('should render only maximized <Window/> components', () => {
       createWrapper({ maximizedWindowIds: ['1'] });
 
-      expect(screen.getByRole('heading', { name: 'Mirador viewer' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Kokudor viewer' })).toBeInTheDocument();
       expect(screen.getByLabelText('Window:')).toHaveAttribute('id', '1');
     });
   });
@@ -85,8 +85,8 @@ describe('Workspace', () => {
     it('should render placeholder content', () => {
       createWrapper({ windowIds: [] });
 
-      expect(screen.getByRole('heading', { name: 'Mirador viewer' })).toBeInTheDocument();
-      expect(screen.getByText('Welcome to Mirador')).toHaveClass('MuiTypography-h1');
+      expect(screen.getByRole('heading', { name: 'Kokudor viewer' })).toBeInTheDocument();
+      expect(screen.getByText('Welcome to Kokudor')).toHaveClass('MuiTypography-h1');
     });
   });
 

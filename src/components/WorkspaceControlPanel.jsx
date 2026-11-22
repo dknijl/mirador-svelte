@@ -1,85 +1,69 @@
 import PropTypes from 'prop-types';
 import { styled } from '@mui/material/styles';
 import classNames from 'classnames';
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
 import { useTranslation } from 'react-i18next';
 import WorkspaceAddButton from '../containers/WorkspaceAddButton';
 import WorkspaceControlPanelButtons from '../containers/WorkspaceControlPanelButtons';
-import Branding from '../containers/Branding';
 import ns from '../config/css-ns';
 
-const Root = styled(AppBar, { name: 'WorkspaceControlPanel', slot: 'root' })(({ ownerState, theme }) => ({
+const Root = styled('nav', { name: 'WorkspaceControlPanel', slot: 'root' })(({ theme }) => ({
+  alignItems: 'center',
   display: 'flex',
-  height: 64,
-  padding: theme.spacing(1),
-  paddingBottom: 0,
-  position: 'relative',
-  [theme.breakpoints.up('sm')]: {
-    height: 'auto',
-    width: ownerState.variant === 'wide' ? 'auto' : 64,
-  },
-  ...(ownerState.variant === 'wide' && {
-    width: 'auto',
-  }),
+  gap: 2,
+  paddingInline: theme.spacing(0.5),
+  '& .MuiIconButton-root, & .MuiFab-root': { height: 32, margin: 0, minHeight: 32, minWidth: 32, padding: 5 },
+  '& .MuiFab-circular': { width: 32 },
+  '& .MuiSvgIcon-root': { fontSize: 20 },
 }));
 
-const StyledToolbar = styled(Toolbar, { name: 'WorkspaceControlPanel', slot: 'toolbar' })(({ theme }) => ({
+const ActionGroup = styled('div', { name: 'WorkspaceControlPanel', slot: 'actions' })(({ theme }) => ({
+  alignItems: 'center',
   display: 'flex',
-  flexGrow: 1,
-  justifyContent: 'space-between',
-  [theme.breakpoints.up('sm')]: {
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    minHeight: 0,
-  },
+  gap: theme.spacing(0.5),
 }));
 
-const StyledWorkspaceButtons = styled('div', { name: 'WorkspaceControlPanel', slot: 'buttonArea' })(({ theme }) => ({
-  [theme.breakpoints.up('sm')]: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: theme.spacing(2),
-    marginBottom: theme.spacing(1),
-    marginTop: theme.spacing(1),
-  },
-}));
-
-const StyledBranding = styled(Branding, { name: 'WorkspaceControlPanel', slot: 'branding' })(({ theme }) => ({
-  [theme.breakpoints.up('xs')]: {
-    display: 'none',
-  },
-  [theme.breakpoints.up('sm')]: {
-    display: 'flex',
-  },
+// The branding link was pinned to the bottom of the old rail; it stays in the
+// chrome so the viewer's provenance is still one click away.
+const BrandingLink = styled(IconButton, { name: 'WorkspaceControlPanel', slot: 'branding' })(() => ({
+  fontSize: 22,
+  fontWeight: 700,
+  lineHeight: 1,
 }));
 
 /**
  * Provides the panel responsible for controlling the entire workspace
  */
-export function WorkspaceControlPanel({ variant = 'default', ...rest }) {
+export function WorkspaceControlPanel({ variant = 'default', optionsTarget = null, ...rest }) {
   const { t } = useTranslation();
   return (
     <Root
       ownerState={{ t, variant, ...rest }}
       className={classNames(ns('workspace-control-panel'))}
-      color="default"
-      enableColorOnDark
-      position="absolute"
-      component="nav"
       aria-label={t('workspaceNavigation')}
     >
-      <StyledToolbar disableGutters>
-        <WorkspaceAddButton />
-        <StyledWorkspaceButtons>
-          <WorkspaceControlPanelButtons />
-        </StyledWorkspaceButtons>
-      </StyledToolbar>
-      <StyledBranding variant={variant} />
+      <WorkspaceAddButton />
+      <ActionGroup>
+        <Tooltip title="Kokudor (GitHub)">
+          <BrandingLink
+            component="a"
+            href="https://github.com/dknijl/mirador-svelte"
+            target="_blank"
+            rel="noopener"
+            aria-label="Kokudor (GitHub)"
+            size="large"
+          >
+            K
+          </BrandingLink>
+        </Tooltip>
+        <WorkspaceControlPanelButtons optionsTarget={optionsTarget} />
+      </ActionGroup>
     </Root>
   );
 }
 
 WorkspaceControlPanel.propTypes = {
+  optionsTarget: PropTypes.object,
   variant: PropTypes.oneOf(['default', 'wide']),
 };

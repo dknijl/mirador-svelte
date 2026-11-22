@@ -28,6 +28,7 @@ const mapStateToProps = (state, { windowId }) => ({
   position: getCompanionWindow(state, {
     companionWindowId: getWindow(state, { windowId }).thumbnailNavigationId,
   }).position,
+  thumbnailColumns: getWindow(state, { windowId }).thumbnailColumns,
   thumbnailNavigation: getConfig(state).thumbnailNavigation,
   view: getWindowViewType(state, { windowId }),
   viewingDirection: getSequenceViewingDirection(state, { windowId }),

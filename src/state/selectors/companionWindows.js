@@ -2,6 +2,7 @@ import { createSelector } from 'reselect';
 import groupBy from 'lodash/groupBy';
 import { miradorSlice, EMPTY_ARRAY, EMPTY_OBJECT } from './utils';
 import { getWindow, getWindows } from './getters';
+import { getConfig } from './config';
 
 /**
  * Returns companion windows.
@@ -165,18 +166,24 @@ export const getCompanionAreaVisibility = createSelector([(state, { position }) 
  * @param {string} companionWindowId
  * @returns {object} containing height and width
  */
-export const selectCompanionWindowDimensions = createSelector([getCompanionWindowsOfWindow], (companionWindows) => {
-  let width = 0;
-  let height = 0;
-  [].concat(...Object.values(companionWindows)).forEach((cw) => {
-    if (cw.position.match(/right/)) {
-      width += 235;
-    }
+export const selectCompanionWindowDimensions = createSelector(
+  [getCompanionWindowsOfWindow, getConfig, getWindow],
+  (companionWindows, config, window) => {
+    let width = 0;
+    let height = 0;
+    [].concat(...Object.values(companionWindows)).forEach((cw) => {
+      if (cw.content === 'thumbnailNavigation' && ['far-left', 'far-right'].includes(cw.position)) {
+        const { columns = 1, width: thumbWidth = 100 } = config.thumbnailNavigation || {};
+        width += thumbWidth * Math.min(2, Math.max(1, window.thumbnailColumns ?? columns));
+      } else if (cw.position.match(/right/)) {
+        width += 235;
+      }
 
-    if (cw.position.match(/bottom/)) {
-      height += 201;
-    }
-  });
+      if (cw.position.match(/bottom/)) {
+        height += 201;
+      }
+    });
 
-  return { height, width };
-});
+    return { height, width };
+  },
+);

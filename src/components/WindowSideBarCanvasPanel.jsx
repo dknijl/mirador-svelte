@@ -63,7 +63,7 @@ export function WindowSideBarCanvasPanel({
 
   return (
     <CompanionWindow
-      title={t('canvasIndex')}
+      title={t('contents')}
       id={id}
       windowId={windowId}
       ref={containerRef}

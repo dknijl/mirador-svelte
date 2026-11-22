@@ -19,6 +19,16 @@ describe('PrimaryWindow', () => {
     // eslint-disable-next-line testing-library/no-node-access
     expect(document.querySelector('.mirador-companion-area-left')).toBeInTheDocument();
   });
+  it('places the thumbnail strip before the canvas and the information panel after it', () => {
+    createWrapper({ children: <div>Canvas</div> });
+    const canvas = screen.getByText('Canvas');
+    // eslint-disable-next-line testing-library/no-node-access
+    const thumbnails = document.querySelector('.mirador-companion-area-far-left');
+    // eslint-disable-next-line testing-library/no-node-access
+    const sidebar = document.querySelector('.mirador-companion-area-left');
+    expect(thumbnails.compareDocumentPosition(canvas) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(canvas.compareDocumentPosition(sidebar) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
   it('should render children when available', () => {
     createWrapper({ children: <span>hi</span>, isFetching: false });
     expect(screen.getByText('hi')).toBeInTheDocument();

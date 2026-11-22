@@ -1,5 +1,6 @@
 import { defineConfig, esmExternalRequirePlugin } from 'vite';
 import react from '@vitejs/plugin-react';
+import { svelte } from '@sveltejs/vite-plugin-svelte';
 import fs from 'fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'url';
@@ -38,7 +39,7 @@ export default defineConfig({
             entry: './src/index.js',
             fileName: (format) => (format === 'es' ? 'mirador.es.js' : undefined),
             formats: ['es'],
-            name: 'Mirador',
+            name: 'Kokudor',
           },
           rolldownOptions: {
             external: (id) => id.startsWith('__tests__/'),
@@ -59,6 +60,7 @@ export default defineConfig({
     'process.env.NODE_ENV': JSON.stringify('production'),
   },
   plugins: [
+    svelte(),
     react(),
     !process.env.NETLIFY && esmExternalRequirePlugin({ external: peerPatterns }),
     // Copy fixtures to dist for Netlify

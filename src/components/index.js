@@ -13,6 +13,8 @@ export * from './Branding';
 export * from './CanvasAnnotations';
 export * from './CanvasInfo';
 export * from './CanvasLayers';
+export * from './CaptionTocMenu';
+export * from './CaptionTocPanel';
 export * from './ChangeThemeDialog';
 export * from './CollapsibleSection';
 export * from './CollectionDialog';

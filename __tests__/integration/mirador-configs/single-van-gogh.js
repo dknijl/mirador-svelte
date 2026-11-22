@@ -5,9 +5,6 @@ export default {
   theme: {
     transitions: {},
   },
-  thumbnailNavigation: {
-    defaultPosition: 'far-bottom',
-  },
   windows: [
     {
       canvasId: PRIMARY_CANVAS_FIXTURE_URL,

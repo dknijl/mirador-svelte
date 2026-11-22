@@ -190,7 +190,7 @@ describe('getNodeIdToScrollTo', () => {
 describe('getDefaultSidebarVariant', () => {
   it('returns thumbnail when no ranges exist', () => {
     const noRangeState = set(['manifests', 'mID', 'json'], noRangesJson, state);
-    expect(getDefaultSidebarVariant(noRangeState, { windowId: 'w1' })).toBe('item');
+    expect(getDefaultSidebarVariant(noRangeState, { windowId: 'w1' })).toBe('thumbnail');
   });
   it('returns tableOfContents when ranges exist', () => {
     expect(getDefaultSidebarVariant(state, { windowId: 'w1' })).toBe('tableOfContents');

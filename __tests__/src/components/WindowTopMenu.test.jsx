@@ -40,7 +40,7 @@ describe('WindowTopMenu', () => {
     expect(screen.getByRole('menu')).toBeInTheDocument();
 
     const menuSections = within(screen.getByRole('menu')).getAllByRole('presentation');
-    expect(menuSections).toHaveLength(2);
+    expect(menuSections).toHaveLength(3);
 
     expect(menuSections[0]).toHaveTextContent('View');
     const menus = within(screen.getByRole('menu')).getAllByRole('menubar');
@@ -52,10 +52,16 @@ describe('WindowTopMenu', () => {
 
     expect(menuSections[1]).toHaveTextContent('Thumbnails');
     const thumbnailItems = within(menus[1]).getAllByRole('menuitemradio');
-    expect(thumbnailItems).toHaveLength(3);
+    expect(thumbnailItems).toHaveLength(4);
     expect(thumbnailItems[0]).toHaveTextContent('Off');
     expect(thumbnailItems[1]).toHaveTextContent('Bottom');
-    expect(thumbnailItems[2]).toHaveTextContent('Right');
+    expect(thumbnailItems[2]).toHaveTextContent('Left');
+    expect(thumbnailItems[3]).toHaveTextContent('Right');
+
+    // The caption table of contents opens in a right-hand companion window.
+    expect(menuSections[2]).toHaveTextContent('Table of contents');
+    expect(screen.getByRole('menubar', { name: 'Thumbnail layout' })).toBeVisible();
+    expect(screen.getByRole('menuitem', { name: 'Open table of contents' })).toBeVisible();
   });
 
   it('does not display unless open', () => {

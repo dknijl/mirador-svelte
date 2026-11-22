@@ -29,7 +29,7 @@ describe('CompanionWindowFactory', () => {
         content: 'canvas',
       });
 
-      expect(screen.getByRole('heading', { level: 3 })).toHaveAccessibleName('Index');
+      expect(screen.getByRole('heading', { level: 3 })).toHaveAccessibleName('Contents');
     });
   });
 

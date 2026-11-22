@@ -8,6 +8,8 @@ import {
   getManifestTitle,
   getThumbnailNavigationPosition,
   getWindow,
+  getFocusedWindowId,
+  getWindowIds,
   getWorkspaceType,
   getWindowDraggability,
   getWindowViewType,
@@ -20,6 +22,7 @@ import {
  * @private
  */
 const mapStateToProps = (state, { windowId }) => ({
+  hostsWorkspaceControls: windowId === (getFocusedWindowId(state) || getWindowIds(state)[0]),
   isFetching: getManifestStatus(state, { windowId }).isFetching,
   label: getManifestTitle(state, { windowId }),
   manifestError: getManifestError(state, { windowId }),

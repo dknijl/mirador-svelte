@@ -15,17 +15,17 @@ import { usePlugins } from '../extend/usePlugins';
 
 const Root = styled(Tabs, { name: 'WindowSideBarButtons', slot: 'root' })({
   '& .MuiTabs-flexContainer': {
-    flexDirection: 'column',
+    flexDirection: 'row',
   },
   '&.MuiTabs-indicator': {
     display: 'none',
   },
+  minHeight: 32,
 });
-
 const StyledTabButton = styled(Tab, { name: 'WindowSideBarButtons', slot: 'button' })(({ theme }) => ({
   '&.Mui-selected': {
-    borderRight: '2px solid',
-    borderRightColor: theme.palette.primary.main,
+    borderBottom: '2px solid',
+    borderBottomColor: theme.palette.primary.main,
   },
   '&.MuiTab-root': {
     '&:active': {
@@ -47,23 +47,35 @@ const StyledTabButton = styled(Tab, { name: 'WindowSideBarButtons', slot: 'butto
       textDecoration: 'none',
       // Reset on touch devices, it doesn't add specificity
     },
-    borderRight: '2px solid transparent',
+    borderBottom: '2px solid transparent',
+    minHeight: 32,
     minWidth: 'auto',
   },
   fill: 'currentcolor',
 }));
 
 /** */
-function TabButton({ value, ...tabProps }) {
+function TabButton({ closeSideBar = () => {}, sideBarPanel = 'closed', value, ...tabProps }) {
   const { t } = useTranslation();
   return (
     <Tooltip title={t('openCompanionWindow', { context: value })}>
-      <StyledTabButton {...tabProps} value={value} aria-label={t('openCompanionWindow', { context: value })} disableRipple />
+      <StyledTabButton
+        {...tabProps}
+        value={value}
+        aria-label={t('openCompanionWindow', { context: value })}
+        // MUI only fires onChange for a different tab.
+        onClick={() => {
+          if (sideBarPanel === value) closeSideBar();
+        }}
+        disableRipple
+      />
     </Tooltip>
   );
 }
 
 TabButton.propTypes = {
+  closeSideBar: PropTypes.func,
+  sideBarPanel: PropTypes.string,
   value: PropTypes.string.isRequired,
 };
 
@@ -78,62 +90,56 @@ export function WindowSideBarButtons({
   hasCurrentLayers = false,
   hasSearchResults = false,
   hasSearchService = false,
+  closeSideBar = () => {},
   panels = [],
   sideBarPanel = 'closed',
 }) {
-  const { t } = useTranslation();
   const { PluginComponents } = usePlugins('WindowSideBarButtons');
   /** */
   const handleChange = (event, value) => {
     addCompanionWindow(value);
   };
+  const tabButton = (value, icon) => (
+    <TabButton key={value} value={value} icon={icon} closeSideBar={closeSideBar} sideBarPanel={sideBarPanel} />
+  );
 
   return (
     <Root
       value={sideBarPanel === 'closed' ? false : sideBarPanel}
       onChange={handleChange}
-      variant="fullWidth"
+      variant="standard"
       indicatorColor="primary"
       textColor="primary"
-      orientation="vertical"
+      orientation="horizontal"
     >
-      {panels.info && <TabButton value="info" icon={<InfoIcon />} />}
-      {panels.attribution && <TabButton value="attribution" icon={<AttributionIcon />} />}
-      {panels.canvas && <TabButton value="canvas" icon={<CanvasIndexIcon />} />}
-      {panels.annotations && (hasAnnotations || hasAnyAnnotations) && (
-        <TabButton
-          value="annotations"
-          icon={
-            <Badge overlap="rectangular" color="notification" invisible={!hasAnnotations} variant="dot">
-              <AnnotationIcon />
-            </Badge>
-          }
-        />
-      )}
-      {panels.search && hasSearchService && (
-        <TabButton
-          value="search"
-          icon={
-            <Badge overlap="rectangular" color="notification" invisible={!hasSearchResults} variant="dot">
-              <SearchIcon />
-            </Badge>
-          }
-        />
-      )}
-      {panels.layers && hasAnyLayers && (
-        <TabButton
-          value="layers"
-          icon={
-            <Badge overlap="rectangular" color="notification" invisible={!hasCurrentLayers} variant="dot">
-              <LayersIcon />
-            </Badge>
-          }
-        />
-      )}
-      {PluginComponents &&
-        PluginComponents.map((PluginComponent) => (
-          <TabButton key={PluginComponent.value} value={PluginComponent.value} icon={<PluginComponent />} />
-        ))}
+      {panels.info && tabButton('info', <InfoIcon />)}
+      {panels.attribution && tabButton('attribution', <AttributionIcon />)}
+      {panels.canvas && tabButton('canvas', <CanvasIndexIcon />)}
+      {panels.annotations &&
+        (hasAnnotations || hasAnyAnnotations) &&
+        tabButton(
+          'annotations',
+          <Badge overlap="rectangular" color="notification" invisible={!hasAnnotations} variant="dot">
+            <AnnotationIcon />
+          </Badge>,
+        )}
+      {panels.search &&
+        hasSearchService &&
+        tabButton(
+          'search',
+          <Badge overlap="rectangular" color="notification" invisible={!hasSearchResults} variant="dot">
+            <SearchIcon />
+          </Badge>,
+        )}
+      {panels.layers &&
+        hasAnyLayers &&
+        tabButton(
+          'layers',
+          <Badge overlap="rectangular" color="notification" invisible={!hasCurrentLayers} variant="dot">
+            <LayersIcon />
+          </Badge>,
+        )}
+      {PluginComponents && PluginComponents.map((PluginComponent) => tabButton(PluginComponent.value, <PluginComponent />))}
     </Root>
   );
 }
@@ -146,6 +152,7 @@ WindowSideBarButtons.propTypes = {
   hasCurrentLayers: PropTypes.bool,
   hasSearchResults: PropTypes.bool,
   hasSearchService: PropTypes.bool,
+  closeSideBar: PropTypes.func,
   panels: PropTypes.objectOf(PropTypes.bool),
   sideBarPanel: PropTypes.string,
 };

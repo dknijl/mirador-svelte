@@ -24,7 +24,7 @@
        border: 2px solid black;
      }
     </style>
-    <title>Mirador</title>
+    <title>Kokudor</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500">
   </head>
   <body>
@@ -33,12 +33,12 @@
     <h1>And this is the second instance</h1>
     <div id="instanceTwo"></div>
     <script type="module">
-      import Mirador from '../src';
+      import Kokudor from '../src';
       import createConfig from '../__tests__/integration/mirador-configs/double-van-gogh.js';
       const configOne = createConfig('instanceOne');
-      const instanceOne = Mirador.viewer(configOne)
+      const instanceOne = Kokudor.viewer(configOne)
       const configTwo = createConfig('instanceTwo');
-      const instanceTwo = Mirador.viewer(configTwo)
+      const instanceTwo = Kokudor.viewer(configTwo)
     </script>
   </body>
 </html>

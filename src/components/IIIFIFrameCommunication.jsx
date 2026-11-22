@@ -1,45 +1,10 @@
-import { useEffect } from 'react';
-import PropTypes from 'prop-types';
-
-const IIIFIFrameCommunicationDefaultProps = {
-  'aria-hidden': true,
-  frameBorder: 0,
-  height: 1,
-  name: undefined,
-  scrolling: undefined,
-  style: { visibility: 'hidden' },
-  width: 1,
-};
-
 /**
- *  Handle IIIF Auth token validation using iframe message events
+ * React entry point kept for API compatibility.
+ *
+ * The implementation lives in `IIIFIFrameCommunication.svelte`; the iframe
+ * props and the window `message` listener behave as before.
  */
-export function IIIFIFrameCommunication({ handleReceiveMessage = undefined, ...props }) {
-  // Attaches the 'message' event listener to the window.
-  useEffect(() => {
-    if (!handleReceiveMessage) return undefined;
+import IIIFIFrameCommunicationSvelte from './IIIFIFrameCommunication.svelte';
+import { toReactComponent } from '../svelte/toReactComponent';
 
-    window.addEventListener('message', handleReceiveMessage);
-
-    // cleanup function
-    return () => window.removeEventListener('message', handleReceiveMessage, false);
-  }, [handleReceiveMessage]);
-
-  return (
-    // iframe "title" attribute is passed in via props for accessibility
-    /* eslint-disable jsx-a11y/iframe-has-title */
-    <iframe {...IIIFIFrameCommunicationDefaultProps} {...props} />
-  );
-}
-
-IIIFIFrameCommunication.propTypes = {
-  'aria-hidden': PropTypes.bool,
-  frameBorder: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  handleReceiveMessage: PropTypes.func,
-  height: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  name: PropTypes.string,
-  scrolling: PropTypes.string,
-  src: PropTypes.string.isRequired,
-  style: PropTypes.shape({}),
-  width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-};
+export const IIIFIFrameCommunication = toReactComponent(IIIFIFrameCommunicationSvelte, 'IIIFIFrameCommunication');

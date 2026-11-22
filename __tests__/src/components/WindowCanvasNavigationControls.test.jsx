@@ -1,4 +1,4 @@
-import { render, screen } from '@tests/utils/test-utils';
+import { render, screen, within } from '@tests/utils/test-utils';
 import { WindowCanvasNavigationControls } from '@src/components/WindowCanvasNavigationControls';
 
 /**
@@ -24,16 +24,6 @@ describe('WindowCanvasNavigationControls', () => {
     expect(container.firstChild).toHaveStyle({ height: '1px', margin: '-1px', width: '1px' });
   });
 
-  it.skip('stacks the nav controls on small width screens', () => {
-    const { container } = render(
-      <div style={{ position: 'relative', width: 252 }}>
-        <Subject />
-      </div>,
-    );
-    // eslint-disable-next-line testing-library/no-node-access
-    expect(container.firstChild).toHaveClass('mirador-canvas-nav-stacked');
-  });
-
   it('shows the zoom control component when specified', () => {
     render(<Subject showZoomControls />);
     expect(screen.getByRole('button', { name: 'Zoom in' })).toBeInTheDocument();
@@ -41,9 +31,12 @@ describe('WindowCanvasNavigationControls', () => {
     expect(screen.getByRole('button', { name: 'Reset zoom' })).toBeInTheDocument();
   });
 
-  it('orders the nav controls before the zoom controls (issue #3190)', () => {
+  it('keeps zoom, page navigation and the counter in a single row', () => {
     render(<Subject showZoomControls />);
-    const labels = screen.getAllByRole('button').map((button) => button.getAttribute('aria-label'));
-    expect(labels).toEqual(['Previous item', 'Next item', 'Zoom in', 'Zoom out', 'Reset zoom']);
+    const controls = screen.getByRole('group', { name: 'Window navigation' });
+    expect(controls).toHaveStyle({ display: 'flex', flexWrap: 'nowrap' });
+    expect(within(controls).getByRole('button', { name: 'Zoom in' })).toBeVisible();
+    expect(within(controls).getByRole('button', { name: 'Previous item' })).toBeVisible();
+    expect(within(controls).getByText(/1 of/)).toBeVisible();
   });
 });

@@ -1,42 +1,13 @@
-# Mirador
-[![Node.js CI](https://github.com/ProjectMirador/mirador/workflows/Node.js%20CI/badge.svg)](https://github.com/ProjectMirador/mirador/actions/workflows/node.js.yml) [![codecov](https://codecov.io/gh/ProjectMirador/mirador/branch/main/graph/badge.svg)](https://codecov.io/gh/ProjectMirador/mirador) 
+# Kokudor
 
-## For Mirador Users
-We recommend installing Mirador using a JavaScript package manager like [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/).
+Kokudor is an IIIF viewer based on Mirador. To build the viewer from this repository, run `npm install` and `npm run build`. The UMD bundle is written to `dist/kokudor.min.js` and exposes `Kokudor.viewer()`.
 
-```sh
-$ npm install mirador 
-
-# or
-
-$ yarn add mirador
-```
-
-If you are interested in integrating Mirador with plugins into your project, we recommend using vite to integrate the es version of the packages. Examples are here:
-
-[https://github.com/ProjectMirador/mirador-integration](https://github.com/ProjectMirador/mirador-integration)
-
-If you want to simply embed Mirador in an HTML page without further customization, include the Mirador UMD build:
-
-```html
-<script src="https://unpkg.com/mirador@latest/dist/mirador.min.js"></script>
-```
-
-Be aware that `latest` will at some point switch from version 3 to version 4. If you use Mirador via CDN in a production environment, consider pinning Mirador to version 3 to avoid sudden breaking changes:
-
-```html
-<script src="https://unpkg.com/mirador@^3/dist/mirador.min.js"></script>
-```
-
-
-More examples of embedding Mirador can be found at [https://github.com/ProjectMirador/mirador/wiki/M3-Embedding-in-Another-Environment#in-an-html-document-with-javascript](https://github.com/ProjectMirador/mirador/wiki/Embedding-in-Another-Environment).
-
-## Adding translations to Mirador
+## Adding translations to Kokudor
 For help with adding a translation, see [src/locales/README.md](src/locales/README.md)
 
-## Running Mirador locally for development
+## Running Kokudor locally for development
 
-Mirador local development requires [nodejs](https://nodejs.org/en/download/) to be installed.
+Kokudor local development requires [nodejs](https://nodejs.org/en/download/) to be installed.
 
 1. Run `npm install` to install the dependencies.
 
@@ -48,28 +19,35 @@ $ npm start
 
 Then navigate to [http://127.0.0.1:4444/](http://127.0.0.1:4444/)
 
-### Instantiating Mirador
+### Instantiating Kokudor
 
-```javascript
-var miradorInstance = Mirador.viewer({
-  id: 'mirador' // id selector where Mirador should be instantiated
-});
+Save this HTML alongside the `dist` directory and serve it over HTTP.
 
-> miradorInstance
-{ actions, store }
+```html
+<!doctype html>
+<meta charset="utf-8">
+<title>Kokudor</title>
+<div id="kokudor" style="position: absolute; inset: 0"></div>
+<script src="./dist/kokudor.min.js"></script>
+<script>
+  const { store } = Kokudor.viewer({
+    id: 'kokudor',
+    windows: [{ manifestId: 'https://kokusho.nijl.ac.jp/biblio/200013800/manifest' }],
+  });
+</script>
 ```
 
 ### Example Action
 
 Add a window:
 ```javascript
-store.dispatch(actions.addWindow());
+store.dispatch(Kokudor.addWindow());
 ```
 
 To focus a window run:
 
 ```javascript
-store.dispatch(actions.focusWindow('window-1'))
+store.dispatch(Kokudor.focusWindow('window-1'))
 ```
 
 ### Check current state
@@ -103,7 +81,7 @@ $ npm run lint
 ```
 ## Image Fallback
 
-Mirador automatically displays a simple fallback placeholder when images fail to load. Customize the fallback image via configuration:
+Kokudor automatically displays a simple fallback placeholder when images fail to load. Customize the fallback image via configuration:
 
 ```javascript
 const config = {
@@ -117,7 +95,7 @@ The error message is translatable via the `imageFailedToLoad` translation key. D
 
 ### Local instance
 
-The following browser extensions are useful for debugging a local development instance of Mirador:
+The following browser extensions are useful for debugging a local development instance of Kokudor:
 
  - [React DevTools](https://github.com/facebook/react-devtools)
  - [Redux DevTools](https://github.com/zalmoxisus/redux-devtools-extension)

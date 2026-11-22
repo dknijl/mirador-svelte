@@ -50,11 +50,12 @@ export function WorkspaceOptionsMenu({ anchorEl = null, handleClose, open = fals
         anchorEl={anchorEl}
         anchorOrigin={{
           horizontal: 'right',
-          vertical: 'top',
+          // Offset from the button’s top edge to clear the bottom toolbar.
+          vertical: -12,
         }}
         transformOrigin={{
-          horizontal: 'left',
-          vertical: 'top',
+          horizontal: 'right',
+          vertical: 'bottom',
         }}
         open={open}
         onClose={handleClose}

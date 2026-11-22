@@ -143,5 +143,7 @@ export function getNodeIdToScrollTo(state, { ...args }) {
  * @returns {string}
  */
 export const getDefaultSidebarVariant = createSelector([getSequenceTreeStructure], (tree) =>
-  tree && tree.nodes && tree.nodes.length > 0 ? 'tableOfContents' : 'item',
+  // A flat manifest opens on the thumbnail grid, which is the quickest way to
+  // recognise a page; structured manifests open on their table of contents.
+  tree && tree.nodes && tree.nodes.length > 0 ? 'tableOfContents' : 'thumbnail',
 );

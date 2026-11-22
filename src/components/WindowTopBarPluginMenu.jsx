@@ -53,11 +53,11 @@ export function WindowTopBarPluginMenu({ windowId, menuIcon = <MoreVertIcon />, 
         anchorEl={anchorEl}
         anchorOrigin={{
           horizontal: 'right',
-          vertical: 'bottom',
+          vertical: 'top',
         }}
         transformOrigin={{
           horizontal: 'right',
-          vertical: 'top',
+          vertical: 'bottom',
         }}
         open={open}
         onClose={handleMenuClose}

@@ -3,30 +3,31 @@ import { styled } from '@mui/material/styles';
 import MenuIcon from '@mui/icons-material/MenuSharp';
 import CloseIcon from '@mui/icons-material/CloseSharp';
 import Toolbar from '@mui/material/Toolbar';
-import AppBar from '@mui/material/AppBar';
 import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 import WindowTopMenuButton from '../containers/WindowTopMenuButton';
 import WindowTopBarPluginArea from '../containers/WindowTopBarPluginArea';
 import WindowTopBarPluginMenu from '../containers/WindowTopBarPluginMenu';
-import WindowTopBarTitle from '../containers/WindowTopBarTitle';
 import MiradorMenuButton from '../containers/MiradorMenuButton';
 import FullScreenButton from '../containers/FullScreenButton';
 import WindowMaxIcon from './icons/WindowMaxIcon';
 import WindowMinIcon from './icons/WindowMinIcon';
 import ns from '../config/css-ns';
 
-const Root = styled(AppBar, { name: 'WindowTopBar', slot: 'root' })(() => ({
+// The window's own actions sit in a bar along the bottom edge, next to the
+// workspace ones, so nothing covers the artwork at the top of the window.
+const Root = styled('nav', { name: 'WindowTopBar', slot: 'root' })(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  flexShrink: 0,
   zIndex: 1100,
 }));
 
 const StyledToolbar = styled(Toolbar, { name: 'WindowTopBar', slot: 'toolbar' })(({ ownerState, theme }) => ({
-  backgroundColor: theme.palette.shades?.main,
-  borderTop: '2px solid',
-  borderTopColor: ownerState?.focused ? theme.palette.primary.main : 'transparent',
+  backgroundColor: 'transparent',
+  justifyContent: 'flex-end',
   minHeight: 32,
   paddingLeft: theme.spacing(0.5),
-  paddingRight: theme.spacing(0.5),
+  paddingRight: theme.spacing(1),
   ...(ownerState?.windowDraggable && {
     cursor: 'move',
   }),
@@ -56,7 +57,7 @@ export function WindowTopBar({
   const ownerState = arguments[0];
 
   return (
-    <Root component={component} aria-label={t('windowNavigation')} position="relative" color="default" enableColorOnDark>
+    <Root as={component} aria-label={t('windowNavigation')}>
       <StyledToolbar
         disableGutters
         onMouseDown={focusWindow}
@@ -75,7 +76,6 @@ export function WindowTopBar({
             <MenuIcon />
           </MiradorMenuButton>
         )}
-        <WindowTopBarTitle windowId={windowId} />
         {allowTopMenuButton && <WindowTopMenuButton windowId={windowId} className={ns('window-menu-btn')} />}
         <WindowTopBarPluginArea windowId={windowId} />
         <WindowTopBarPluginMenu windowId={windowId} />

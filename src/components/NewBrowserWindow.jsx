@@ -1,29 +1,14 @@
-import { useRef, useEffect } from 'react';
+/**
+ * React entry point kept for API compatibility.
+ *
+ * The window handling lives in `NewBrowserWindow.svelte`; the component still
+ * renders no visible DOM.
+ */
 import PropTypes from 'prop-types';
+import NewBrowserWindowSvelte from './NewBrowserWindow.svelte';
+import { toReactComponent } from '../svelte/toReactComponent';
 
-/** */
-export function NewBrowserWindow({ depWindow = undefined, features = undefined, name = undefined, onClose, url }) {
-  const released = useRef(false);
-
-  useEffect(() => {
-    const newWindow = (depWindow || window).open(url, name, features);
-
-    const checkIfWindowClosed = setInterval(() => {
-      if (!released.current && (!newWindow || newWindow.closed)) {
-        released.current = true;
-        clearInterval(checkIfWindowClosed);
-        onClose(url);
-      }
-    }, 250);
-
-    return () => {
-      clearInterval(checkIfWindowClosed);
-      newWindow.close();
-    };
-  });
-
-  return null;
-}
+export const NewBrowserWindow = toReactComponent(NewBrowserWindowSvelte, 'NewBrowserWindow');
 
 NewBrowserWindow.propTypes = {
   depWindow: PropTypes.object,

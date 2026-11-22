@@ -7,6 +7,7 @@ import ThumbnailsOffIcon from '@mui/icons-material/CropDinSharp';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import ThumbnailNavigationBottomIcon from './icons/ThumbnailNavigationBottomIcon';
+import ThumbnailNavigationLeftIcon from './icons/ThumbnailNavigationLeftIcon';
 import ThumbnailNavigationRightIcon from './icons/ThumbnailNavigationRightIcon';
 
 const ThumbnailOption = styled(MenuItem, { name: 'WindowThumbnailSettings', slot: 'option' })(({ selected, theme }) => ({
@@ -38,6 +39,8 @@ const StyledMenuList = styled(MenuList, { name: 'WindowViewSettings', slot: 'opt
 export function WindowThumbnailSettings({
   handleClose = () => {},
   thumbnailNavigationPosition,
+  thumbnailColumns = null,
+  updateWindow = () => {},
   direction,
   windowId,
   setWindowThumbnailPosition,
@@ -95,6 +98,28 @@ export function WindowThumbnailSettings({
           />
         </ThumbnailOption>
         <ThumbnailOption
+          aria-checked={thumbnailNavigationPosition === 'far-left'}
+          key="far-left"
+          onClick={() => {
+            handleChange('far-left');
+          }}
+          role="menuitemradio"
+          selected={thumbnailNavigationPosition === 'far-left'}
+        >
+          <FormControlLabel
+            control={
+              <ThumbnailNavigationLeftIcon
+                color={thumbnailNavigationPosition === 'far-left' ? 'secondary' : undefined}
+                fill="currentcolor"
+                style={direction === 'rtl' ? { transform: 'rotate(180deg)' } : {}}
+              />
+            }
+            label={t('left')}
+            labelPlacement="bottom"
+            value="far-left"
+          />
+        </ThumbnailOption>
+        <ThumbnailOption
           aria-checked={thumbnailNavigationPosition === 'far-right'}
           key="far-right"
           onClick={() => {
@@ -117,11 +142,33 @@ export function WindowThumbnailSettings({
           />
         </ThumbnailOption>
       </StyledMenuList>
+      {thumbnailNavigationPosition !== 'off' && (
+        <StyledMenuList role="menubar" aria-label={t('thumbnailLayout')} sx={{ display: 'flex' }}>
+          {[null, 1, 2].map((count) => (
+            <MenuItem
+              key={count ?? 'auto'}
+              role="menuitemradio"
+              selected={count === thumbnailColumns}
+              aria-checked={count === thumbnailColumns}
+              onClick={() => {
+                updateWindow(windowId, { thumbnailColumns: count });
+                handleClose();
+              }}
+            >
+              {count === null
+                ? t('thumbnailAuto')
+                : t(thumbnailNavigationPosition === 'far-bottom' ? 'thumbnailRows' : 'thumbnailColumns', { count })}
+            </MenuItem>
+          ))}
+        </StyledMenuList>
+      )}
     </>
   );
 }
 
 WindowThumbnailSettings.propTypes = {
+  thumbnailColumns: PropTypes.oneOf([1, 2]),
+  updateWindow: PropTypes.func,
   direction: PropTypes.string.isRequired,
   handleClose: PropTypes.func,
   setWindowThumbnailPosition: PropTypes.func.isRequired,

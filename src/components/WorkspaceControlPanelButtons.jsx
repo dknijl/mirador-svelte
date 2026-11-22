@@ -1,3 +1,5 @@
+import { createPortal } from 'react-dom';
+import PropTypes from 'prop-types';
 import FullScreenButton from '../containers/FullScreenButton';
 import WorkspaceMenuButton from '../containers/WorkspaceMenuButton';
 import WorkspaceOptionsButton from '../containers/WorkspaceOptionsButton';
@@ -7,14 +9,23 @@ import { PluginHook } from './PluginHook';
 /**
  *
  */
-export function WorkspaceControlPanelButtons({ ...rest }) {
-  return (
+export function WorkspaceControlPanelButtons({ optionsTarget = null, ...rest }) {
+  const options = (
     <>
-      <WindowListButton />
-      <WorkspaceMenuButton />
       <WorkspaceOptionsButton />
       <FullScreenButton />
       <PluginHook targetName="WorkspaceControlPanelButtons" {...rest} />
     </>
   );
+  return (
+    <>
+      <WindowListButton />
+      <WorkspaceMenuButton />
+      {optionsTarget ? createPortal(options, optionsTarget) : options}
+    </>
+  );
 }
+
+WorkspaceControlPanelButtons.propTypes = {
+  optionsTarget: PropTypes.object,
+};

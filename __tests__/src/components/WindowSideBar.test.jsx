@@ -2,7 +2,7 @@ import { render, screen } from '@tests/utils/test-utils';
 import { WindowSideBar } from '@src/components/WindowSideBar';
 
 /** create wrapper */
-function createWrapper({ ...props }) {
+function createWrapper({ ...props } = {}) {
   return render(<WindowSideBar windowId="xyz" {...props} />, {
     preloadedState: {
       windows: {
@@ -15,25 +15,18 @@ function createWrapper({ ...props }) {
   });
 }
 
-describe('WindowSideBar when closed', () => {
-  it('renders without an error', () => {
-    createWrapper({});
-    expect(screen.queryByRole('navigation', { accessibleName: 'sidebarPanelsNavigation' })).not.toBeInTheDocument();
+describe('WindowSideBar', () => {
+  it('renders the panel menu inline, leaving the left edge to the thumbnails', () => {
+    createWrapper();
+    expect(screen.getByRole('tablist')).toBeInTheDocument();
+    // eslint-disable-next-line testing-library/no-node-access
+    expect(document.querySelector('.MuiDrawer-root')).not.toBeInTheDocument();
   });
-});
-describe('WindowSideBar when open', () => {
-  it('renders in an open state', () => {
-    createWrapper({ sideBarOpen: true });
-    expect(screen.getByRole('navigation', { accessibleName: 'sidebarPanelsNavigation' })).toBeInTheDocument();
-  });
-  it('Renders drawer ltr by default', () => {
-    createWrapper({ sideBarOpen: true });
-    const drawer = screen.queryByRole('navigation', { accessibleName: 'sidebarPanelsNavigation' }).parentElement; // eslint-disable-line testing-library/no-node-access
-    expect(drawer).toHaveClass('MuiDrawer-anchorLeft');
-  });
-  it('Renders drawer rtl when specified', () => {
-    createWrapper({ direction: 'rtl', sideBarOpen: true });
-    const drawer = screen.queryByRole('navigation', { accessibleName: 'sidebarPanelsNavigation' }).parentElement; // eslint-disable-line testing-library/no-node-access
-    expect(drawer).toHaveClass('MuiDrawer-anchorRight');
+
+  it('shows the panel menus as tabs in a single row', () => {
+    createWrapper();
+    const tabs = screen.getAllByRole('tab');
+    expect(tabs.length).toBeGreaterThan(1);
+    expect(screen.getByRole('tablist')).toBeInTheDocument();
   });
 });

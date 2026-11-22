@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react';
 import PropTypes from 'prop-types';
 import { styled } from '@mui/material/styles';
 import classNames from 'classnames';
-import WindowSideBar from '../containers/WindowSideBar';
+import WindowTopBarTitle from '../containers/WindowTopBarTitle';
 import CompanionArea from '../containers/CompanionArea';
 import CollectionDialog from '../containers/CollectionDialog';
 import ns from '../config/css-ns';
@@ -19,9 +19,39 @@ SelectCollection.displayName = 'SelectCollection';
 WindowViewer.displayName = 'WindowViewer';
 
 const Root = styled('div', { name: 'PrimaryWindow', slot: 'root' })(() => ({
+  containerType: 'inline-size',
   display: 'flex',
   flex: 1,
   position: 'relative',
+}));
+
+const ViewerLayer = styled('div', { name: 'PrimaryWindow', slot: 'viewer' })({
+  display: 'flex',
+  flex: 1,
+  flexDirection: 'column',
+  minWidth: 0,
+  position: 'relative',
+});
+
+const CanvasRow = styled('div')({
+  display: 'flex',
+  flex: 1,
+  minHeight: 0,
+  position: 'relative',
+});
+
+const CanvasLayer = styled('div')({
+  minWidth: 0,
+  display: 'flex',
+  flex: 1,
+  minHeight: 0,
+  position: 'relative',
+});
+
+const TitleLayer = styled('div', { name: 'PrimaryWindow', slot: 'title' })(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  paddingInline: theme.spacing(1.5),
+  textAlign: 'end',
 }));
 
 /**  */
@@ -93,10 +123,20 @@ export function PrimaryWindow({
 
   return (
     <Root data-testid="test-window" className={classNames(ns('primary-window'), className)}>
-      <WindowSideBar windowId={windowId} />
-      <CompanionArea windowId={windowId} position="left" />
+      <CompanionArea windowId={windowId} position="far-left" />
       {isCollectionDialogVisible && <CollectionDialog windowId={windowId} />}
-      <Suspense fallback={<div />}>{children || <TypeSpecificViewer {...viewerProps} />}</Suspense>
+      <ViewerLayer>
+        <TitleLayer>
+          <WindowTopBarTitle windowId={windowId} />
+        </TitleLayer>
+        <CanvasRow>
+          <CanvasLayer>
+            <Suspense fallback={<div />}>{children || <TypeSpecificViewer {...viewerProps} />}</Suspense>
+          </CanvasLayer>
+          {/* "left" identifies the switchable sidebar in saved workspaces and plugins. */}
+          <CompanionArea windowId={windowId} position="left" />
+        </CanvasRow>
+      </ViewerLayer>
     </Root>
   );
 }

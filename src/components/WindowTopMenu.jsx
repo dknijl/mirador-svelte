@@ -4,6 +4,7 @@ import Popover from '@mui/material/Popover';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import WindowThumbnailSettings from '../containers/WindowThumbnailSettings';
+import CaptionTocMenu from '../containers/CaptionTocMenu';
 import WindowViewSettings from '../containers/WindowViewSettings';
 import { PluginHook } from './PluginHook';
 import WorkspaceContext from '../contexts/WorkspaceContext';
@@ -47,11 +48,11 @@ export function WindowTopMenu({
       container={container?.current}
       anchorOrigin={{
         horizontal: 'right',
-        vertical: 'bottom',
+        vertical: 'top',
       }}
       transformOrigin={{
         horizontal: 'right',
-        vertical: 'top',
+        vertical: 'bottom',
       }}
       onClose={handleClose}
       orientation="horizontal"
@@ -70,6 +71,7 @@ export function WindowTopMenu({
     >
       <WindowViewSettings windowId={windowId} handleClose={handleClose} />
       {showThumbnailNavigationSettings && <WindowThumbnailSettings windowId={windowId} handleClose={handleClose} />}
+      <CaptionTocMenu windowId={windowId} handleClose={handleClose} />
       <PluginHookWithHeader targetName="WindowTopMenu" {...pluginProps} />
     </Popover>
   );

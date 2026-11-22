@@ -4,12 +4,13 @@ import { ZoomControls } from '@src/components/ZoomControls';
 import OpenSeadragonViewerContext from '@src/contexts/OpenSeadragonViewerContext';
 
 /** Builds a mock OpenSeadragonViewerContext ref exposing the given zoom bounds */
-function osdViewerWithZoom({ zoom, minZoom, maxZoom }) {
+function osdViewerWithZoom({ zoom, minZoom, maxZoom, rotation = 0 }) {
   return {
     current: {
       viewport: {
         getMaxZoom: () => maxZoom,
         getMinZoom: () => minZoom,
+        getRotation: () => rotation,
         zoomSpring: { target: { value: zoom } },
       },
     },
@@ -45,6 +46,53 @@ describe('ZoomControls', () => {
     expect(screen.getByRole('button', { name: 'Zoom in' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Zoom out' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Reset zoom' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Rotate' })).toBeInTheDocument();
+  });
+
+  describe('rotate', () => {
+    // The rotation is applied as an absolute angle, so each press has to start
+    // from where the canvas is now rather than accumulating a delta.
+    it('rotates a quarter turn from an unrotated canvas', async () => {
+      updateViewport = vi.fn();
+      createWrapper({ updateViewport, viewer, zoomToWorld });
+
+      await user.click(screen.getAllByRole('button', { name: 'Rotate' }).at(-1));
+
+      expect(updateViewport).toHaveBeenLastCalledWith('xyz', { rotation: 90 });
+    });
+
+    it('reads the live rotation from the viewport before redux', async () => {
+      updateViewport = vi.fn();
+      createWrapper(
+        { updateViewport, viewer: { ...viewer, rotation: 0 }, zoomToWorld },
+        osdViewerWithZoom({ maxZoom: 0.5, minZoom: 0.1, rotation: 90, zoom: 0.3 }),
+      );
+
+      await user.click(screen.getAllByRole('button', { name: 'Rotate' }).at(-1));
+
+      expect(updateViewport).toHaveBeenLastCalledWith('xyz', { rotation: 180 });
+    });
+
+    it('wraps back to zero from three quarter turns', async () => {
+      updateViewport = vi.fn();
+      createWrapper(
+        { updateViewport, viewer, zoomToWorld },
+        osdViewerWithZoom({ maxZoom: 0.5, minZoom: 0.1, rotation: 270, zoom: 0.3 }),
+      );
+
+      await user.click(screen.getAllByRole('button', { name: 'Rotate' }).at(-1));
+
+      expect(updateViewport).toHaveBeenLastCalledWith('xyz', { rotation: 0 });
+    });
+
+    it('falls back to the redux rotation when there is no viewport yet', async () => {
+      updateViewport = vi.fn();
+      createWrapper({ updateViewport, viewer: { ...viewer, rotation: 180 }, zoomToWorld });
+
+      await user.click(screen.getAllByRole('button', { name: 'Rotate' }).at(-1));
+
+      expect(updateViewport).toHaveBeenLastCalledWith('xyz', { rotation: 270 });
+    });
   });
 
   it('has a zoom-in button', async () => {

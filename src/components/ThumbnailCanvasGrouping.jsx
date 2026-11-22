@@ -38,12 +38,23 @@ export class ThumbnailCanvasGrouping extends PureComponent {
 
   /** */
   render() {
-    const { index, columnIndex, style, canvasGroupings, position, currentCanvasId, showThumbnailLabels } = this.props;
-    // For Grid (horizontal), use columnIndex; for List (vertical), use index
-    const itemIndex = columnIndex !== undefined ? columnIndex : index;
+    const { index, columnCount, columnIndex, rowIndex, style, canvasGroupings, position, currentCanvasId, showThumbnailLabels } =
+      this.props;
+    // Grid passes row/column indices; List passes a single `index`.
+    const { bottomRows } = this.props;
+    const gridIndex =
+      position === 'far-bottom'
+        ? (columnIndex ?? 0) * bottomRows + (rowIndex ?? 0)
+        : (rowIndex ?? 0) * (columnCount || canvasGroupings.length) + (columnIndex ?? 0);
+    const itemIndex = index ?? gridIndex;
     const currentGroupings = canvasGroupings[itemIndex];
+
+    if (!currentGroupings) return null;
+
     const SPACING = 12;
 
+    const sideStrip = position === 'far-left' || position === 'far-right';
+    const numbered = sideStrip;
     const isSelected = currentGroupings.map((canvas) => canvas.id).includes(currentCanvasId);
 
     return (
@@ -60,7 +71,8 @@ export class ThumbnailCanvasGrouping extends PureComponent {
         className={ns('thumbnail-nav-container')}
         role="gridcell"
         aria-selected={isSelected}
-        aria-colindex={itemIndex + 1}
+        aria-colindex={(columnIndex ?? 0) + 1}
+        aria-rowindex={(rowIndex ?? itemIndex) + 1}
       >
         <StyledCanvas
           role="button"
@@ -79,8 +91,22 @@ export class ThumbnailCanvasGrouping extends PureComponent {
               outline: isSelected ? `2px solid ${theme.palette.primary.main}` : `2px solid ${theme.palette.action.hover}`,
               outlineOffset: isSelected ? '3px' : '-2px',
             },
-            height: position === 'far-right' ? 'auto' : `${style.height}px`,
-            width: position === 'far-bottom' ? 'auto' : `${style.width}px`,
+            // The cell is inset by SPACING, so the canvas must fill the cell's
+            // content box rather than repeat the outer cell width; otherwise it
+            // spills out and makes the strip scroll sideways.
+            ...(sideStrip && {
+              display: 'flex',
+              '& > div': { flex: '1 1 0', minWidth: 0 },
+              '& img': { display: 'block', maxWidth: '100%', objectFit: 'contain' },
+              '& span': { display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', color: 'text.primary' },
+            }),
+            ...(numbered && {
+              '& > div': { display: 'flex', alignItems: 'flex-start', gap: '3px' },
+              '& img': { flex: '1 1 auto', minWidth: 0, height: 'auto' },
+              '& > div > span': { flex: '0 0 auto', lineHeight: 1.2, fontVariantNumeric: 'tabular-nums' },
+            }),
+            height: position === 'far-right' || position === 'far-left' ? 'auto' : `${style.height}px`,
+            width: position === 'far-right' || position === 'far-left' ? '100%' : 'auto',
           })}
           className={classNames(
             ns([
@@ -90,13 +116,14 @@ export class ThumbnailCanvasGrouping extends PureComponent {
             ]),
           )}
         >
-          {currentGroupings.map((canvas, i) => (
+          {currentGroupings.map((canvas) => (
             <IIIFThumbnail
               key={canvas.id}
               resource={canvas}
+              label={numbered ? String(canvas.index + 1) : undefined}
               labelled={showThumbnailLabels}
-              maxHeight={position === 'far-right' ? style.height - SPACING : style.height}
-              variant="inside"
+              maxHeight={sideStrip ? Math.max(1, style.height - SPACING * 2) : style.height}
+              variant={numbered ? 'numbered' : 'inside'}
             />
           ))}
         </StyledCanvas>
@@ -107,16 +134,22 @@ export class ThumbnailCanvasGrouping extends PureComponent {
 
 ThumbnailCanvasGrouping.propTypes = {
   canvasGroupings: PropTypes.array.isRequired,
+  bottomRows: PropTypes.number,
+  columnCount: PropTypes.number,
   columnIndex: PropTypes.number,
   currentCanvasId: PropTypes.string.isRequired,
   index: PropTypes.number,
   position: PropTypes.string.isRequired,
+  rowIndex: PropTypes.number,
   setCanvas: PropTypes.func.isRequired,
   showThumbnailLabels: PropTypes.bool.isRequired,
   style: PropTypes.object.isRequired,
 };
 
 ThumbnailCanvasGrouping.defaultProps = {
+  bottomRows: 1,
+  columnCount: undefined,
   columnIndex: undefined,
   index: undefined,
+  rowIndex: undefined,
 };

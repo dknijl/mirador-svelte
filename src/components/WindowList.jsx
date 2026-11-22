@@ -24,11 +24,11 @@ export function WindowList({
     <Menu
       anchorOrigin={{
         horizontal: 'right',
-        vertical: 'top',
+        vertical: 'bottom',
       }}
       transformOrigin={{
         horizontal: 'left',
-        vertical: 'top',
+        vertical: 'bottom',
       }}
       id="window-list-menu"
       container={container?.current}

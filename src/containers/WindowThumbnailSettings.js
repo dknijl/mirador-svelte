@@ -2,7 +2,7 @@ import { compose } from 'redux';
 import { connect } from 'react-redux';
 import { withPlugins } from '../extend/withPlugins';
 import * as actions from '../state/actions';
-import { getThumbnailNavigationPosition, getThemeDirection } from '../state/selectors';
+import { getThumbnailNavigationPosition, getThemeDirection, getWindow } from '../state/selectors';
 import { WindowThumbnailSettings } from '../components/WindowThumbnailSettings';
 
 /**
@@ -10,7 +10,7 @@ import { WindowThumbnailSettings } from '../components/WindowThumbnailSettings';
  * @memberof ManifestListItem
  * @private
  */
-const mapDispatchToProps = { setWindowThumbnailPosition: actions.setWindowThumbnailPosition };
+const mapDispatchToProps = { updateWindow: actions.updateWindow, setWindowThumbnailPosition: actions.setWindowThumbnailPosition };
 
 /**
  * mapStateToProps - to hook up connect
@@ -18,6 +18,7 @@ const mapDispatchToProps = { setWindowThumbnailPosition: actions.setWindowThumbn
  * @private
  */
 const mapStateToProps = (state, { windowId }) => ({
+  thumbnailColumns: getWindow(state, { windowId })?.thumbnailColumns,
   direction: getThemeDirection(state),
   thumbnailNavigationPosition: getThumbnailNavigationPosition(state, { windowId }),
 });

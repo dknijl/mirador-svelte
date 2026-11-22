@@ -197,6 +197,39 @@ describe('selectCompanionWindowDimensions', () => {
       width: 235 * 2,
     });
   });
+
+  it('counts the far-left thumbnail strip at its configured width', () => {
+    const state = {
+      companionWindows: {
+        abc: { content: 'thumbnailNavigation', id: 'abc', position: 'far-left' },
+      },
+      config: { thumbnailNavigation: { columns: 2, width: 100 } },
+      windows: { a: { companionWindowIds: ['abc'] } },
+    };
+
+    const props = { windowId: 'a' };
+
+    expect(selectCompanionWindowDimensions(state, props)).toEqual({
+      height: 0,
+      width: 200,
+    });
+  });
+
+  it('does not count the left sidebar pane, which overlays the window', () => {
+    const state = {
+      companionWindows: {
+        abc: { content: 'info', id: 'abc', position: 'left' },
+      },
+      windows: { a: { companionWindowIds: ['abc'] } },
+    };
+
+    const props = { windowId: 'a' };
+
+    expect(selectCompanionWindowDimensions(state, props)).toEqual({
+      height: 0,
+      width: 0,
+    });
+  });
 });
 
 describe('getCompanionWindowsForContent', () => {

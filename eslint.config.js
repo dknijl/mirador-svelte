@@ -5,6 +5,8 @@ import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
 import importPlugin from 'eslint-plugin-import';
+import sveltePlugin from 'eslint-plugin-svelte';
+import svelteParser from 'svelte-eslint-parser';
 import testingLibraryPlugin from 'eslint-plugin-testing-library';
 import jestDomPlugin from 'eslint-plugin-jest-dom';
 import prettierRecommended from 'eslint-plugin-prettier/recommended';
@@ -158,6 +160,33 @@ export default [
     files: ['**/__tests__/**', '**/*.test.js', '**/*.test.jsx', 'setupTest.js'],
     rules: {
       'no-undef': 'off', // Test globals (describe, it, expect, etc.) provided by vitest
+    },
+  },
+  ...sveltePlugin.configs['flat/recommended'],
+  {
+    files: ['**/*.svelte', '**/*.svelte.js'],
+    languageOptions: {
+      parser: svelteParser,
+      parserOptions: {
+        parser: {
+          ecmaFeatures: { jsx: true },
+        },
+        extraFileExtensions: ['.svelte'],
+        sourceType: 'module',
+      },
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+        $derived: 'readonly',
+        $effect: 'readonly',
+        $props: 'readonly',
+        $state: 'readonly',
+      },
+    },
+    rules: {
+      // SanitizedHtml is the single place that intentionally injects HTML that
+      // DOMPurify has already cleaned.
+      'svelte/no-at-html-tags': 'off',
     },
   },
   // Ignore alias imports in test files

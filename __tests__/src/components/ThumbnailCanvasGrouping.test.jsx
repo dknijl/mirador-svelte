@@ -73,9 +73,11 @@ describe('ThumbnailCanvasGrouping', () => {
       });
     });
     it('in button div', () => {
-      expect(screen.getByRole('button', { name: 'Image 1' })).toHaveStyle({
+      // The cell is inset by the 12px SPACING, so the canvas fills the cell's
+      // content box instead of repeating the outer cell width.
+      expect(screen.getByRole('button', { name: '2' })).toHaveStyle({
         height: 'auto',
-        width: '100px',
+        width: '100%',
       });
     });
   });

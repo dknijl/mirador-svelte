@@ -8,6 +8,8 @@ export { default as ConnectedBranding } from './Branding';
 export { default as ConnectedCanvasAnnotations } from './CanvasAnnotations';
 export { default as ConnectedCanvasInfo } from './CanvasInfo';
 export { default as ConnectedCanvasLayers } from './CanvasLayers';
+export { default as ConnectedCaptionTocMenu } from './CaptionTocMenu';
+export { default as ConnectedCaptionTocPanel } from './CaptionTocPanel';
 export { default as ConnectedChangeThemeDialog } from './ChangeThemeDialog';
 export { default as ConnectedCollapsibleSection } from './CollapsibleSection';
 export { default as ConnectedCollectionDialog } from './CollectionDialog';

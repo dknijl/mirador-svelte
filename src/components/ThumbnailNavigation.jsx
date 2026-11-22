@@ -1,11 +1,36 @@
-import { useCallback, useRef, useEffect } from 'react';
+import { useElementSize } from '@custom-react-hooks/use-element-size';
+import { useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
 import { List, Grid } from 'react-window';
 import classNames from 'classnames';
 import { useTranslation } from 'react-i18next';
 import ThumbnailCanvasGrouping from '../containers/ThumbnailCanvasGrouping';
 import ns from '../config/css-ns';
+
+const spacing = 12;
+const scrollbarSize = 6;
+
+/** Size the virtual grid along its scrolling axis. */
+function getThumbnailLayout({ position, thumbnailNavigation, thumbnailColumns, measuredWidth, view, groupCount }) {
+  const isBottom = position === 'far-bottom';
+  const isSideBar = position === 'far-left' || position === 'far-right';
+  const preferredWidth = thumbnailNavigation.width * (view === 'book' ? 2 : 1);
+  const configuredColumns = Math.min(2, Math.max(1, thumbnailNavigation.columns || 1));
+  const desiredColumns = thumbnailColumns ?? configuredColumns;
+  const stripWidth = isSideBar ? preferredWidth * desiredColumns : '100%';
+  const autoNarrow = isSideBar && !thumbnailColumns && measuredWidth > 0 && measuredWidth < stripWidth;
+  const sideColumns = autoNarrow ? 1 : desiredColumns;
+  const cellWidth = isSideBar && measuredWidth ? measuredWidth / sideColumns : preferredWidth;
+  const bottomRows = thumbnailColumns ?? 1;
+  const columns = isBottom ? Math.ceil(groupCount / bottomRows) : sideColumns;
+  const rows = isBottom ? bottomRows : Math.ceil(groupCount / sideColumns);
+  const bottomRowHeight = Math.max(1, Math.floor((thumbnailNavigation.height - spacing - scrollbarSize) / bottomRows));
+  const isGrid = isBottom || sideColumns > 1;
+  return { isBottom, isSideBar, stripWidth, sideColumns, cellWidth, bottomRows, columns, rows, bottomRowHeight, isGrid };
+}
+
 /**
  */
 export function ThumbnailNavigation({
@@ -16,71 +41,62 @@ export function ThumbnailNavigation({
   position,
   setNextCanvas = () => {},
   setPreviousCanvas = () => {},
+  thumbnailColumns = null,
   thumbnailNavigation,
   view = undefined,
   viewingDirection = '',
   windowId,
 }) {
   const { t } = useTranslation();
-  const scrollbarSize = 6;
-  const spacing = 12; // 2 * (2px margin + 2px border + 2px padding)
   const gridRef = useRef();
-  const previousView = useRef(view);
-
-  useEffect(() => {
-    if (previousView.current !== view && position !== 'off') {
-      previousView.current = view;
-      // Note: resetAfterIndex is not available in react-window v2 List API
-      // The list will re-render automatically when rowHeight function changes
-    }
-  }, [view, position]);
+  const [measureRef, { width: measuredWidth }] = useElementSize();
+  const { isBottom, isSideBar, stripWidth, sideColumns, cellWidth, bottomRows, columns, rows, bottomRowHeight, isGrid } =
+    getThumbnailLayout({
+      position,
+      thumbnailNavigation,
+      thumbnailColumns,
+      measuredWidth,
+      view,
+      groupCount: canvasGroupings.length,
+    });
 
   useEffect(() => {
     let index = canvasIndex;
     if (view === 'book') index = Math.ceil(index / 2);
     // Only scroll if the index is valid
     if (gridRef.current && index >= 0 && index < canvasGroupings.length) {
-      // For horizontal Grid, scroll to column; for vertical List, scroll to row
-      if (position === 'far-bottom') {
-        // react-window Grid API in v2
+      if (isGrid) {
+        // Both layouts are a grid now; only the row/column mapping differs.
         gridRef.current.scrollToCell({
-          columnIndex: index,
-          rowIndex: 0,
           columnAlign: 'center',
+          columnIndex: isBottom ? Math.floor(index / bottomRows) : index % sideColumns,
           rowAlign: 'center',
+          rowIndex: isBottom ? index % bottomRows : Math.floor(index / sideColumns),
         });
-      } else {
+      } else if (gridRef.current.scrollToRow) {
         // react-window List API in v2
         gridRef.current.scrollToRow({ index, align: 'center' });
       }
     }
-  }, [canvasIndex, view, canvasGroupings.length, position]);
-
-  // Prevent loss of focus when navigating thumbnails
-  const paperRef = useRef(null);
-
-  useEffect(() => {
-    if (paperRef.current && document.activeElement !== paperRef.current) {
-      // This effect runs on mount too (not just keyboard navigation)
-      // Without preventScroll, the browser scrolls this element into view
-      // Inside an iframe embed, that scrolls the whole outer page down to the viewer
-      paperRef.current.focus({ preventScroll: true });
-    }
-  }, [canvasIndex]);
+  }, [canvasIndex, view, canvasGroupings.length, isBottom, isGrid, sideColumns, bottomRows, cellWidth]);
 
   /** */
   const handleKeyDown = (e) => {
+    // A side strip stacks thumbnails downwards, so moving through them is
+    // vertical; the bottom strip runs across, so it stays horizontal.
     let nextKey = 'ArrowRight';
     let previousKey = 'ArrowLeft';
-    if (position === 'far-right') {
+    if (isSideBar) {
       nextKey = 'ArrowDown';
       previousKey = 'ArrowUp';
     }
     switch (e.key) {
       case nextKey:
+        e.preventDefault();
         nextCanvas();
         break;
       case previousKey:
+        e.preventDefault();
         previousCanvas();
         break;
       default:
@@ -112,7 +128,7 @@ export function ThumbnailNavigation({
     const canvases = canvasGroupings[index];
     if (!canvases) return thumbnailNavigation.width + spacing;
 
-    const availableHeight = thumbnailNavigation.height - spacing - scrollbarSize;
+    const availableHeight = bottomRowHeight;
     const calc = Math.ceil(canvases.reduce((total, canvas) => total + availableHeight * canvasAspectRatio(canvas), 0));
 
     if (!Number.isInteger(calc)) return thumbnailNavigation.width + spacing;
@@ -130,7 +146,9 @@ export function ThumbnailNavigation({
     const canvases = canvasGroupings[index];
     if (!canvases) return thumbnailNavigation.height + spacing;
 
-    const availableWidth = thumbnailNavigation.width - spacing - scrollbarSize;
+    // Each tile shares the panel width with its neighbours, so the available
+    // width per cell shrinks as the column count grows.
+    const availableWidth = cellWidth - spacing - scrollbarSize;
     const totalAspectRatio = canvases.reduce((total, canvas) => total + canvasAspectRatio(canvas), 0);
     const calc = Math.ceil((availableWidth * canvases.length) / totalAspectRatio);
 
@@ -140,21 +158,22 @@ export function ThumbnailNavigation({
   };
 
   /** */
-  const style = useCallback(() => {
-    const width = view === 'book' ? thumbnailNavigation.width * 2 : thumbnailNavigation.width;
+  const gridColumnWidth = (column) => {
+    const first = column * bottomRows;
+    return bottomRows === 2 && first + 1 < canvasGroupings.length
+      ? Math.max(calculateScaledWidth(first), calculateScaledWidth(first + 1))
+      : calculateScaledWidth(first);
+  };
 
-    switch (position) {
-      case 'far-right':
-        return {
-          width: `${width}px`,
-        };
-      // Default case bottom
-      default:
-        return {
-          width: '100%',
-        };
+  const gridRowHeight = (row) => {
+    const first = row * sideColumns;
+    const last = Math.min(first + sideColumns, canvasGroupings.length);
+    let height = 0;
+    for (let index = first; index < last; index += 1) {
+      height = Math.max(height, calculateScaledHeight(index));
     }
-  }, [position, thumbnailNavigation, view]);
+    return height;
+  };
 
   /**
    */
@@ -174,6 +193,8 @@ export function ThumbnailNavigation({
   const htmlDir = viewingDirection === 'right-to-left' ? 'rtl' : 'ltr';
   const itemData = {
     canvasGroupings,
+    columnCount: columns,
+    bottomRows,
     position,
     windowId,
   };
@@ -182,36 +203,47 @@ export function ThumbnailNavigation({
     <Paper
       className={classNames(ns('thumb-navigation'))}
       sx={{
-        '&:focus': {
-          boxShadow: 0,
-          outline: 0,
-        },
-        scrollbarGutter: 'stable',
+        '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: -2 },
+        ...(isSideBar && {
+          display: 'flex',
+          flexDirection: 'column',
+          bgcolor: (theme) => (theme.palette.mode === 'dark' ? '#353535' : theme.palette.background.paper),
+          '& > [role="grid"], & > [role="list"]': { flex: 1, minHeight: 0 },
+          maxWidth: '30cqw',
+          [`@container (max-width: ${Math.ceil(parseFloat(stripWidth) / 0.3)}px)`]: {
+            maxWidth: thumbnailColumns ? '30cqw' : `min(30cqw, ${thumbnailNavigation.width}px)`,
+          },
+        }),
       }}
       aria-label={t('thumbnailNavigation')}
       square
       elevation={0}
-      style={style()}
+      style={{ width: stripWidth }}
       tabIndex={0}
       onKeyDown={handleKeyDown}
-      ref={paperRef}
+      ref={measureRef}
     >
-      {canvasGroupings.length > 0 && position === 'far-bottom' && (
+      {isSideBar && (
+        <Typography component="h3" variant="subtitle2" sx={{ px: 1.25, py: 0.5, textTransform: 'uppercase' }}>
+          {t('contents')}
+        </Typography>
+      )}
+      {canvasGroupings.length > 0 && isGrid && (
         <Grid
-          columnCount={canvasGroupings.length}
-          columnWidth={calculateScaledWidth}
-          rowCount={1}
-          rowHeight={thumbnailNavigation.height - spacing - scrollbarSize}
+          columnCount={columns}
+          columnWidth={position === 'far-bottom' ? gridColumnWidth : cellWidth}
+          rowCount={rows}
+          rowHeight={position === 'far-bottom' ? bottomRowHeight : gridRowHeight}
           style={{
             direction: htmlDir === 'rtl' ? 'rtl' : 'ltr',
-            height: thumbnailNavigation.height,
+            ...(position === 'far-bottom' && { height: thumbnailNavigation.height }),
           }}
           cellProps={itemData}
           gridRef={gridRef}
           cellComponent={ThumbnailCanvasGrouping}
         />
       )}
-      {canvasGroupings.length > 0 && position === 'far-right' && (
+      {canvasGroupings.length > 0 && isSideBar && !isGrid && (
         <List
           defaultHeight={100}
           rowCount={canvasGroupings.length}
@@ -237,6 +269,7 @@ ThumbnailNavigation.propTypes = {
   position: PropTypes.string.isRequired,
   setNextCanvas: PropTypes.func,
   setPreviousCanvas: PropTypes.func,
+  thumbnailColumns: PropTypes.oneOf([1, 2]),
   thumbnailNavigation: PropTypes.object.isRequired,
   view: PropTypes.string,
   viewingDirection: PropTypes.string,

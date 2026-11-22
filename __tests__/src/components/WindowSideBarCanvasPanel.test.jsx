@@ -44,7 +44,7 @@ describe('WindowSideBarCanvasPanel', () => {
   it('renders SidebarIndexList', () => {
     createWrapper({ multipleSequences: false });
 
-    expect(screen.getByRole('heading', { name: 'Index' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Contents' })).toBeInTheDocument();
     expect(screen.getByRole('menu')).toBeInTheDocument();
   });
 

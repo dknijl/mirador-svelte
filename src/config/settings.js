@@ -11,7 +11,7 @@ export default {
   },
   // Override the default fallback image with a custom one for loading failures
   // fallbackImage: 'path/to/your/custom/fallback.jpg',
-  selectedTheme: 'light', // dark also available
+  selectedTheme: 'dark', // dark also available
   themes: {
     dark: {
       palette: {
@@ -221,11 +221,8 @@ export default {
             display: 'flex',
             flexDirection: 'column',
             minHeight: 0,
-            ...(ownerState?.position === 'right' && {
+            ...((ownerState?.position === 'left' || ownerState?.position === 'right') && {
               borderLeft: '0.5px solid rgba(0, 0, 0, 0.125)',
-            }),
-            ...(ownerState?.position === 'left' && {
-              borderRight: '0.5px solid rgba(0, 0, 0, 0.125)',
             }),
             ...(ownerState?.position === 'bottom' && {
               borderTop: '0.5px solid rgba(0, 0, 0, 0.125)',
@@ -521,8 +518,7 @@ export default {
     /**
     Example Window:
     {
-      manifestId: 'https://iiif.harvardartmuseums.org/manifests/object/299843',
-      canvasId: 'https://iiif.harvardartmuseums.org/manifests/object/299843/page_2',
+      manifestId: 'https://kokusho.nijl.ac.jp/biblio/200013800/manifest',
       thumbnailNavigationPosition: 'far-bottom',
       maximized: false,
     }
@@ -534,7 +530,8 @@ export default {
     preferredFormats: ['jpg', 'png', 'webp', 'tif'],
   },
   thumbnailNavigation: {
-    defaultPosition: 'off', // Which position for the thumbnail navigation to be be displayed. Other possible values are "far-bottom" or "far-right"
+    columns: 2, // number of thumbnail columns when position is "far-right" or "far-left"
+    defaultPosition: 'far-left', // Which position for the thumbnail navigation to be displayed. Other possible values are "off", "far-bottom" or "far-right"
     displaySettings: true, // Display the settings for this in WindowTopMenu
     height: 130, // height of entire ThumbnailNavigation area when position is "far-bottom"
     showThumbnailLabels: true, // Configure if thumbnail labels should be displayed
@@ -570,6 +567,7 @@ export default {
     // Default config used for OpenSeadragon
     alwaysBlend: false,
     blendTime: 0.1,
+    drawer: 'canvas',
     preserveImageSizeOnResize: true,
     preserveViewport: false,
     showNavigationControl: false,

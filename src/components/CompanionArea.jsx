@@ -14,6 +14,14 @@ const Root = styled('div', { name: 'CompanionArea', slot: 'root' })(({ ownerStat
   minHeight: 0,
   position: 'relative',
   zIndex: theme.zIndex.appBar - 2,
+  ...(ownerState.position === 'left' && {
+    '@container (max-width: 600px)': {
+      insetBlock: 0,
+      insetInlineEnd: 0,
+      position: 'absolute',
+      zIndex: theme.zIndex.drawer + 1,
+    },
+  }),
   ...((ownerState.position === 'bottom' || ownerState.position === 'far-bottom') && {
     flexDirection: 'column',
     width: '100%',
@@ -26,6 +34,9 @@ const Container = styled('div', { name: 'CompanionArea', slot: 'container' })(({
     flexDirection: 'column',
     width: '100%',
   }),
+  // The sidebar pane holds companion windows of the default sidebar
+  // width; the far-left strip sizes itself from the thumbnail configuration
+  // (thumbnailNavigation.width), so forcing 235px there would leave a gutter.
   ...(ownerState?.position === 'left' &&
     ownerState?.companionWindowIds &&
     ownerState.companionWindowIds.length > 0 && {
@@ -38,11 +49,11 @@ const StyledToggle = styled('div', { name: 'CompanionArea', slot: 'toggle' })(({
   backgroundColor: theme.palette.background.paper,
   border: `1px solid ${theme.palette.shades?.dark}`,
   ...theme.applyStyles('dark', { borderColor: theme.palette.divider }),
-  borderInlineStart: 0,
+  borderInlineEnd: 0,
   borderRadius: 0,
   display: 'inline-flex',
   height: '48px',
-  left: '100%',
+  insetInlineEnd: '100%',
   marginTop: '1rem',
   overflow: 'hidden',
   padding: 2,
@@ -68,15 +79,8 @@ export function CompanionArea({
   const areaLayoutClass = position === 'bottom' || position === 'far-bottom' ? classes.horizontal : null;
 
   /** */
-  const collapseIcon = (() => {
-    if (direction === 'rtl') {
-      if (companionAreaOpen) return <ArrowRightIcon />;
-      return <ArrowLeftIcon />;
-    }
-
-    if (companionAreaOpen) return <ArrowLeftIcon />;
-    return <ArrowRightIcon />;
-  })();
+  const pointsRight = companionAreaOpen === (direction !== 'rtl');
+  const collapseIcon = pointsRight ? <ArrowRightIcon /> : <ArrowLeftIcon />;
 
   /** */
   const slideDirection = (() => {
@@ -84,9 +88,12 @@ export function CompanionArea({
     const oppositePosition = direction === 'rtl' ? 'right' : 'left';
 
     switch (position) {
+      case 'left':
       case 'right':
       case 'far-right':
         return oppositePosition;
+      case 'far-left':
+        return defaultPosition;
       case 'bottom':
       case 'far-bottom':
         return 'up';
@@ -113,11 +120,11 @@ export function CompanionArea({
           <MiradorMenuButton
             aria-expanded={companionAreaOpen}
             aria-label={companionAreaOpen ? t('collapseSidePanel') : t('expandSidePanel')}
-            edge="start"
+            edge="end"
             onClick={() => {
               setCompanionAreaOpen(windowId, !companionAreaOpen);
             }}
-            TooltipProps={{ placement: 'right' }}
+            TooltipProps={{ placement: direction === 'rtl' ? 'right' : 'left' }}
           >
             {collapseIcon}
           </MiradorMenuButton>

@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useLayoutEffect, useRef, useState } from 'react';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
@@ -26,6 +26,29 @@ export function WorkspaceMenu({
   const container = useContext(WorkspaceContext);
   const [selectedOption, setSelectedOption] = useState(null);
 
+  const menuAction = useRef(null);
+  const [paper, setPaper] = useState(null);
+  const { anchorEl, open } = menuProps;
+
+  useLayoutEffect(() => {
+    if (!open || !anchorEl || !paper) return undefined;
+
+    const updateLayout = () => {
+      // Leave 16px at the viewport top and 12px above the trigger.
+      paper.style.maxHeight = `${Math.max(0, anchorEl.getBoundingClientRect().top - 28)}px`;
+      menuAction.current?.updatePosition();
+    };
+    const viewport = anchorEl.ownerDocument.defaultView;
+    const observer = viewport.ResizeObserver && new viewport.ResizeObserver(updateLayout);
+    observer?.observe(paper);
+    viewport.addEventListener('resize', updateLayout);
+    updateLayout();
+    return () => {
+      observer?.disconnect();
+      viewport.removeEventListener('resize', updateLayout);
+    };
+  }, [anchorEl, open, paper]);
+
   // eslint-disable-next-line prefer-rest-params
   const pluginProps = arguments[0];
 
@@ -49,14 +72,16 @@ export function WorkspaceMenu({
   return (
     <>
       <Menu
+        action={menuAction}
+        slotProps={{ paper: { ref: setPaper } }}
         container={container?.current}
         anchorOrigin={{
-          horizontal: 'right',
-          vertical: 'top',
+          horizontal: 'left',
+          vertical: -12,
         }}
         transformOrigin={{
           horizontal: 'left',
-          vertical: 'top',
+          vertical: 'bottom',
         }}
         onClose={handleClose}
         {...menuProps}

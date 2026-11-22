@@ -1,5 +1,11 @@
+AGENTS.md
 dist/
 coverage/
 node_modules/
 *.log
 *.tgz
+.modkh
+.agenticreplay
+
+.kiokuko
+.kiokuko.json

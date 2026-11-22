@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
+import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { fileURLToPath } from 'url';
 
 export default defineConfig({
@@ -14,12 +15,17 @@ export default defineConfig({
       },
     },
   },
-  plugins: [react()],
+  plugins: [svelte(), react()],
   resolve: {
-    alias: {
-      '@tests': fileURLToPath(new URL('./__tests__', import.meta.url)),
-      '@src': fileURLToPath(new URL('./src', import.meta.url)),
-    },
+    alias: [
+      { find: '@tests', replacement: fileURLToPath(new URL('./__tests__', import.meta.url)) },
+      { find: '@src', replacement: fileURLToPath(new URL('./src', import.meta.url)) },
+      // Vitest resolves package conditions for node, which would pick Svelte's
+      // server build (where `mount` is unavailable). Adding the global
+      // `browser` condition instead breaks msw/node, so only the Svelte root
+      // entry is pointed at its client build.
+      { find: /^svelte$/, replacement: fileURLToPath(new URL('./node_modules/svelte/src/index-client.js', import.meta.url)) },
+    ],
   },
   test: {
     environment: 'happy-dom',

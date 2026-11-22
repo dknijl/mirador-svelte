@@ -4,6 +4,7 @@ import GalleryViewIcon from './GalleryViewIcon';
 import MiradorIcon from './MiradorIcon';
 import RestoreZoomIcon from './RestoreZoomIcon';
 import ThumbnailNavigationBottomIcon from './ThumbnailNavigationBottomIcon';
+import ThumbnailNavigationLeftIcon from './ThumbnailNavigationLeftIcon';
 import ThumbnailNavigationRightIcon from './ThumbnailNavigationRightIcon';
 import WindowMaxIcon from './WindowMaxIcon';
 import WindowMinIcon from './WindowMinIcon';
@@ -18,6 +19,7 @@ export {
   MiradorIcon,
   RestoreZoomIcon,
   ThumbnailNavigationBottomIcon,
+  ThumbnailNavigationLeftIcon,
   ThumbnailNavigationRightIcon,
   WindowMaxIcon,
   WindowMinIcon,

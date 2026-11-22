@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { svelte } from '@sveltejs/vite-plugin-svelte';
 
 /**
  * Vite configuration
@@ -9,9 +10,9 @@ export default defineConfig({
     emptyOutDir: false,
     lib: {
       entry: './src/index.js',
-      fileName: (format) => (format === 'umd' ? 'mirador.min.js' : undefined),
+      fileName: (format) => (format === 'umd' ? 'kokudor.min.js' : undefined),
       formats: ['umd'],
-      name: 'Mirador',
+      name: 'Kokudor',
     },
     rolldownOptions: {
       external: ['__tests__/*'],
@@ -26,5 +27,5 @@ export default defineConfig({
     'process.env': '{}',
     'process.env.NODE_ENV': JSON.stringify('production'),
   },
-  plugins: [react()],
+  plugins: [svelte(), react()],
 });

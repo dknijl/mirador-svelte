@@ -35,12 +35,13 @@ describe('ThumbnailNavigation', () => {
     expect(screen.getByRole('grid')).toBeInTheDocument();
   });
 
-  it('restores focus without scrolling the page into view', () => {
+  it('keeps focus on the toolbar when the selected canvas changes', () => {
     const focusSpy = vi.spyOn(HTMLElement.prototype, 'focus');
 
-    render(<Subject />);
+    const { rerender } = render(<Subject />);
+    rerender(<Subject canvasIndex={2} />);
 
-    expect(focusSpy).toHaveBeenCalledWith({ preventScroll: true });
+    expect(focusSpy).not.toHaveBeenCalled();
 
     focusSpy.mockRestore();
   });
@@ -60,6 +61,18 @@ describe('ThumbnailNavigation', () => {
     expect(screen.getAllByRole('gridcell')).toHaveLength(3);
   });
 
+  it('fills two bottom rows in reading order, including a final unpaired canvas', () => {
+    render(<Subject thumbnailColumns={2} />);
+    const cells = screen.getAllByRole('gridcell');
+    expect(cells).toHaveLength(3);
+    for (const cell of cells) {
+      // eslint-disable-next-line testing-library/no-node-access
+      const index = Number(cell.querySelector('[data-canvas-index]').dataset.canvasIndex);
+      expect(cell).toHaveAttribute('aria-colindex', String(Math.floor(index / 2) + 1));
+      expect(cell).toHaveAttribute('aria-rowindex', String((index % 2) + 1));
+    }
+  });
+
   it('uses List component for vertical (far-right) layout', () => {
     render(<Subject position="far-right" />);
     // List component renders with role="list" inside the Thumbnails wrapper
@@ -67,6 +80,16 @@ describe('ThumbnailNavigation', () => {
     const list = thumbnailWrapper.querySelector('[role="list"]'); // eslint-disable-line testing-library/no-node-access
     expect(list).toBeInTheDocument();
     // List should have 3 gridcells (each as a separate item)
+    expect(screen.getAllByRole('gridcell')).toHaveLength(3);
+  });
+
+  it('lays out far-left as a vertical strip on the left', () => {
+    render(<Subject position="far-left" />);
+    const thumbnailWrapper = screen.getByLabelText('Thumbnails');
+    // A side strip is tall and narrow rather than a full-width bottom row
+    expect(thumbnailWrapper).toHaveStyle({ width: '100px' });
+    // Each cell is sized like the far-right column, not the bottom row
+    expect(screen.getAllByRole('gridcell')[0]).toHaveStyle({ height: '123px' });
     expect(screen.getAllByRole('gridcell')).toHaveLength(3);
   });
 

@@ -44,36 +44,38 @@ export function MinimalWindow({
       }}
       aria-label={label && ariaLabel ? t('window', { label }) : null}
     >
+      {children}
+      {/* Same placement as a loaded window: its actions sit under the content. */}
       <AppBar position="relative" color="default" enableColorOnDark>
         <Toolbar
           disableGutters
           className={cn(ns('window-top-bar'))}
           sx={{
             backgroundColor: 'shades.main',
-            borderTop: '2px solid transparent',
-            minHeight: 32,
+            justifyContent: 'flex-end',
+            minHeight: 48,
             paddingLeft: 0.5,
-            paddingRight: 0.5,
+            paddingRight: 1,
           }}
           variant="dense"
         >
-          {allowWindowSideBar && (
-            <MiradorMenuButton aria-label={t('toggleWindowSideBar')} disabled>
-              <MenuIcon />
-            </MiradorMenuButton>
-          )}
           <Typography
             variant="h2"
             noWrap
             sx={{
               color: 'inherit',
               flexGrow: 1,
-              paddingLeft: 0.5,
+              paddingLeft: 1.5,
               typography: 'h6',
             }}
           >
             {label}
           </Typography>
+          {allowWindowSideBar && (
+            <MiradorMenuButton aria-label={t('toggleWindowSideBar')} disabled>
+              <MenuIcon />
+            </MiradorMenuButton>
+          )}
           {allowClose && removeWindow && (
             <StyledMiradorMenuButton
               aria-label={t('closeWindow')}
@@ -88,7 +90,6 @@ export function MinimalWindow({
           )}
         </Toolbar>
       </AppBar>
-      {children}
     </Paper>
   );
 }

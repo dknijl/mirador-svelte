@@ -1,10 +1,9 @@
-import { forwardRef } from 'react';
+import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
+import { CanvasToolbarTarget } from '../contexts/ToolbarContext';
+import { forwardRef, useContext } from 'react';
 import PropTypes from 'prop-types';
-import { alpha, styled } from '@mui/material/styles';
-import classNames from 'classnames';
-import Paper from '@mui/material/Paper';
-import Stack from '@mui/material/Stack';
-import Divider from '@mui/material/Divider';
+import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import { visuallyHidden } from '@mui/utils';
 import { useElementSize } from '@custom-react-hooks/use-element-size';
@@ -15,26 +14,26 @@ import ViewerNavigation from '../containers/ViewerNavigation';
 import ns from '../config/css-ns';
 import { PluginHook } from './PluginHook';
 
-const Root = styled(Paper, { name: 'WindowCanvasNavigationControls', slot: 'root' })(({ theme }) => ({
+const Root = styled('div', { name: 'WindowCanvasNavigationControls', slot: 'root' })({
   alignItems: 'center',
-  backgroundColor: alpha(theme.palette.background.paper, 0.5),
-  bottom: 0,
-  cursor: 'default',
   display: 'flex',
-  flexDirection: 'column',
-  flexWrap: 'wrap',
+  flexGrow: 1,
+  flexWrap: 'nowrap',
   justifyContent: 'center',
-  position: 'absolute',
-  textAlign: 'center',
-  width: '100%',
-  zIndex: 50,
-}));
+  columnGap: 8,
+  paddingInline: 8,
+  '& .MuiIconButton-root': { width: 38 },
+  '& .mirador-osd-navigation': { display: 'flex', flexShrink: 0 },
+  '& .mirador-osd-info': { maxWidth: '38ch', paddingInline: 4, width: 'auto' },
+});
 
 /**
  * Represents the viewer controls in the mirador workspace.
  */
 export const WindowCanvasNavigationControls = forwardRef(
   ({ showZoomControls = false, visible = true, windowId, zoomToWorld, ...rest }, ref) => {
+    const target = useContext(CanvasToolbarTarget);
+    const { t } = useTranslation();
     const [sizeRef, size] = useElementSize();
 
     const pluginProps = {
@@ -44,11 +43,6 @@ export const WindowCanvasNavigationControls = forwardRef(
       windowId,
       ...rest,
     };
-    /**
-     * Determine if canvasNavControls are stacked (based on a hard-coded width)
-     */
-    const canvasNavControlsAreStacked = size && size.width && size.width <= 253;
-
     if (!visible)
       return (
         <Typography style={visuallyHidden} component="div">
@@ -56,26 +50,15 @@ export const WindowCanvasNavigationControls = forwardRef(
         </Typography>
       );
 
-    return (
-      <Root
-        square
-        className={classNames(ns('canvas-nav'), canvasNavControlsAreStacked ? ns('canvas-nav-stacked') : null)}
-        elevation={0}
-        ref={mergeRefs(ref, sizeRef)}
-      >
-        <Stack
-          direction={canvasNavControlsAreStacked ? 'column' : 'row'}
-          divider={<Divider orientation={canvasNavControlsAreStacked ? 'horizontal' : 'vertical'} variant="middle" flexItem />}
-          spacing={0}
-        >
-          <ViewerNavigation windowId={windowId} />
-          {showZoomControls && <ZoomControls windowId={windowId} zoomToWorld={zoomToWorld} />}
-        </Stack>
+    const controls = (
+      <Root className={ns('canvas-nav')} role="group" aria-label={t('windowNavigation')} ref={mergeRefs(ref, sizeRef)}>
+        {showZoomControls && <ZoomControls windowId={windowId} zoomToWorld={zoomToWorld} />}
+        <ViewerNavigation windowId={windowId} />
         <ViewerInfo windowId={windowId} />
-
         <PluginHook targetName="WindowCanvasNavigationControls" {...pluginProps} />
       </Root>
     );
+    return target ? createPortal(controls, target) : controls;
   },
 );
 

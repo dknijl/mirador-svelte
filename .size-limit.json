@@ -1,6 +1,6 @@
 [
   {
-    "path": "dist/mirador.min.js",
+    "path": "dist/kokudor.min.js",
     "limit": "732.0 kB",
     "gzip": true
   }

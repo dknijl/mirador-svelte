@@ -1,49 +1,30 @@
 import PropTypes from 'prop-types';
 import { styled } from '@mui/material/styles';
-import Drawer from '@mui/material/Drawer';
-import Paper from '@mui/material/Paper';
-import { useTranslation } from 'react-i18next';
 import WindowSideBarButtons from '../containers/WindowSideBarButtons';
 
-const Root = styled(Drawer, { name: 'WindowSideBar', slot: 'root' })(({ theme }) => ({
-  flexShrink: 0,
-  order: -1000,
-  zIndex: theme.zIndex.appBar - 1,
+// The panel menu used to be a full-height rail on the left edge of the window,
+// where it competed with the thumbnail strip for the same edge. It now sits in
+// the bottom bar with the other window actions, so it is a plain row of tabs
+// rather than a drawer: the tab list already gives it its own structure.
+const Root = styled('div', { name: 'WindowSideBar', slot: 'root' })(({ theme }) => ({
+  alignItems: 'center',
+  display: 'flex',
+  minHeight: 32,
+  minWidth: 'max-content',
+  paddingInlineStart: theme.spacing(0.5),
 }));
 
 /**
- * WindowSideBar
+ * WindowSideBar ~ the row of panel menus for a window.
  */
-export function WindowSideBar({ classes = {}, direction, windowId, sideBarOpen = false }) {
-  const { t } = useTranslation();
+export function WindowSideBar({ windowId }) {
   return (
-    <Drawer
-      sx={{ flexShrink: 0, order: -1000, zIndex: (theme) => theme.zIndex.appBar - 1 }}
-      variant="persistent"
-      className={classes.drawer}
-      anchor={direction === 'rtl' ? 'right' : 'left'}
-      slotProps={{
-        paper: {
-          'aria-label': t('sidebarPanelsNavigation'),
-          component: 'nav',
-          sx: { width: sideBarOpen ? 48 : 0, position: 'relative' },
-        },
-        transition: {
-          direction: direction === 'rtl' ? 'left' : 'right',
-          mountOnEnter: true,
-          unmountOnExit: true,
-        },
-      }}
-      open={sideBarOpen}
-    >
+    <Root>
       <WindowSideBarButtons windowId={windowId} />
-    </Drawer>
+    </Root>
   );
 }
 
 WindowSideBar.propTypes = {
-  classes: PropTypes.objectOf(PropTypes.string),
-  direction: PropTypes.string.isRequired,
-  sideBarOpen: PropTypes.bool,
   windowId: PropTypes.string.isRequired,
 };
