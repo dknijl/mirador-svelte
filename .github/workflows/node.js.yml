@@ -24,11 +24,4 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm ci
-      - run: npm test -- --coverage
-      - name: Save coverage report
-        if: matrix.node-version == '24.x'
-        uses: actions/upload-artifact@v7
-        with:
-          name: coverage
-          path: coverage/clover.xml
-          if-no-files-found: error
+      - run: npm test
