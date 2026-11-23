@@ -59,7 +59,7 @@
         class: ns('window-menu-btn'),
       }}
     >
-      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 4h18v16H3z M15 4v16" /></svg>
     </Connected>
   {/if}
   {#if allowTopMenuButton}<Connected name="WindowTopMenuButton" component={WindowTopMenuButton} targetProps={{ windowId }} />{/if}

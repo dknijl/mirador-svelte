@@ -20,7 +20,7 @@
       <h2>{label}</h2>
       {#if allowWindowSideBar}
         <button type="button" aria-label={t('toggleWindowSideBar')} disabled>
-          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18" /></svg>
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 4h18v16H3z M15 4v16" /></svg>
         </button>
       {/if}
       {#if allowClose && removeWindow}
