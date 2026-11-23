@@ -27,8 +27,8 @@
   <div
     class="mirador-thumbnail-nav-container"
     role="gridcell"
-    style:width={Number.isFinite(style.width) ? Math.max(1, style.width - (side ? 0 : 12)) + 'px' : undefined}
-    style:height={Number.isFinite(style.height) ? Math.max(1, style.height - (side ? 0 : 12)) + 'px' : undefined}
+    style:width={Number.isFinite(style.width) ? style.width + 'px' : undefined}
+    style:height={Number.isFinite(style.height) ? style.height + 'px' : undefined}
     aria-selected={selected}
     aria-colindex={columnIndex + 1}
     aria-rowindex={rowIndex + 1}
@@ -36,12 +36,11 @@
     <button
       type="button"
       class={'mirador-thumbnail-nav-canvas mirador-thumbnail-nav-canvas-' + groupIndex}
-      class:side
       class:current={selected}
       data-canvas-index={group[0].index}
       data-canvas-id={group[0].id}
-      style:height={side || !style.height ? 'auto' : style.height + 'px'}
-      style:width={side ? '100%' : 'auto'}
+      style:height="auto"
+      style:width="100%"
       aria-label={showThumbnailLabels
         ? undefined
         : group.map((canvas) => canvas.getLabel?.()?.getValue?.('') || String(canvas.index + 1)).join(', ')}
@@ -55,8 +54,8 @@
             resource: canvas,
             labelled: showThumbnailLabels,
             label: side ? String(canvas.index + 1) : undefined,
-            maxHeight: side ? imageHeight : style.height,
-            style: side ? { width: '100%', maxWidth: '100%', height: imageHeight, objectFit: 'contain' } : undefined,
+            maxHeight: imageHeight,
+            style: { width: '100%', maxWidth: '100%', height: imageHeight, objectFit: 'contain' },
           }}
         />
       {/each}
@@ -82,14 +81,17 @@
     outline: 2px solid var(--mirador-primary);
     outline-offset: 2px;
   }
-  .side :global(img) {
+  button :global(img) {
     display: block;
   }
-  .side :global(span) {
+  button :global(span) {
     display: block;
     line-height: 20px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
-  .side :global(div) {
+  button :global(div) {
     min-width: 0;
     flex: 1;
   }

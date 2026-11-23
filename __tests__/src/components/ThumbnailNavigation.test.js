@@ -170,13 +170,32 @@ describe('ThumbnailNavigation', () => {
       cells().find((cell) => cell.getAttribute('aria-rowindex') === '2' && cell.getAttribute('aria-colindex') === '150'),
     ).toBeInTheDocument();
   });
+  it('keeps distant cells mounted after scrolling a single bottom row to the left in an RTL book', () => {
+    const props = {
+      position: 'far-bottom',
+      canvasGroupings: manyGroupings(),
+      canvasIndex: 0,
+      thumbnailColumns: 1,
+      viewingDirection: 'right-to-left',
+    };
+    const view = createWrapper(props);
+    grid().scrollLeft = -4000;
+    fireEvent.scroll(grid());
+    view.rerender({ ...props, canvasGroupings: [...props.canvasGroupings] });
+    expect(grid().scrollLeft).toBe(-4000);
+    expect(cells()[0]).not.toHaveAttribute('aria-colindex', '1');
+  });
+  it('caps a single bottom row at the side thumbnail width plus scrollbar space', () => {
+    createWrapper({ thumbnailColumns: 1 });
+    expect(screen.getByRole('navigation')).toHaveStyle({ height: '106px' });
+  });
   it('does not render when thumbnail navigation is off', () => {
     createWrapper({ position: 'off' });
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
   });
 
   it.each([
-    ['far-bottom', manifestJson, 'width', '88px'],
+    ['far-bottom', manifestJson, 'width', '58px'],
     ['far-right', manifestJson, 'height', '135px'],
     ['far-left', manifestJson, 'height', '135px'],
     ['far-bottom', zeroWidthFixture, 'width', '100px'],

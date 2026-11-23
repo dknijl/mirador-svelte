@@ -1,4 +1,5 @@
 <script>
+  import { untrack } from 'svelte';
   import Connected from '../svelte/Connected.svelte';
   import ThumbnailCanvasGrouping from './ThumbnailCanvasGrouping.svelte';
 
@@ -30,13 +31,20 @@
   const rows = $derived(horizontal ? bottomRows : Math.ceil(canvasGroupings.length / columns));
   const preferredWidth = $derived((thumbnailNavigation.width || 100) * (view === 'book' ? 2 : 1));
   const navWidth = $derived(horizontal ? '100%' : `${preferredWidth * columnsPref}px`);
-  const navHeight = $derived(horizontal ? `${thumbnailNavigation.height || 130}px` : '100%');
+  const groupingCount = $derived(canvasGroupings.length);
   const focusedGroup = $derived(view === 'book' ? Math.ceil(canvasIndex / 2) : canvasIndex);
   const spacing = 12;
   const scrollbar = 6;
   const fallbackHeight = $derived(thumbnailNavigation.height || 130);
-  const bottomCellHeight = $derived(Math.max(1, Math.floor((fallbackHeight - spacing - scrollbar) / bottomRows)));
+  const bottomHeight = $derived(Math.min(fallbackHeight, (thumbnailNavigation.width || 100) * bottomRows + scrollbar));
+  const navHeight = $derived(horizontal ? `${bottomHeight}px` : '100%');
+  const bottomCellHeight = $derived(Math.max(1, Math.floor((bottomHeight - scrollbar) / bottomRows)));
+  const bottomImageHeight = $derived(
+    Math.max(1, bottomCellHeight - spacing - (thumbnailNavigation.showThumbnailLabels === false ? 0 : 20)),
+  );
+  const rtl = $derived(viewingDirection === 'right-to-left');
   let measuredWidth = $state(0);
+  let measuredHeight = $state(0);
   const sideWidth = $derived(measuredWidth ? measuredWidth / columns : preferredWidth);
 
   function groupSize(group) {
@@ -45,9 +53,9 @@
       0,
     );
     const size = horizontal
-      ? Math.ceil(bottomCellHeight * aspect)
+      ? Math.min(preferredWidth - spacing, Math.ceil(bottomImageHeight * aspect))
       : Math.ceil(((sideWidth - spacing - scrollbar) * group.length) / aspect);
-    if (!Number.isFinite(size) || size <= 0) return (horizontal ? preferredWidth : fallbackHeight) + spacing;
+    if (!Number.isFinite(size) || size <= 0) return horizontal ? preferredWidth : fallbackHeight + spacing;
     return (horizontal ? size : Math.max(size, Math.round(fallbackHeight / 3))) + spacing;
   }
 
@@ -75,7 +83,7 @@
 
   const visibleRange = $derived.by(() => {
     const offset = horizontal ? scrollLeft : scrollTop;
-    const extent = horizontal ? gridElement?.clientWidth || preferredWidth * 5 : gridElement?.clientHeight || fallbackHeight * 5;
+    const extent = horizontal ? measuredWidth || preferredWidth * 5 : measuredHeight || fallbackHeight * 5;
     const first = Math.max(0, trackAt(offset) - 4);
     const last = Math.min(offsets.length - 1, trackAt(offset + extent) + 5);
     return {
@@ -107,14 +115,17 @@
 
   $effect(() => {
     const current = focusedGroup;
-    if (current < 0 || current >= canvasGroupings.length) return;
+    const track = Math.floor(current / perTrack);
+    if (current < 0 || current >= groupingCount) return;
     if (gridElement) {
-      const track = Math.floor(current / perTrack);
-      const target = offsets[track];
-      const end = offsets[track + 1];
-      if (horizontal && (target < gridElement.scrollLeft || end > gridElement.scrollLeft + gridElement.clientWidth)) {
-        gridElement.scrollLeft = target;
-        scrollLeft = target;
+      // Recomputing track sizes must not pull a manually scrolled strip back to the selection.
+      const tracks = untrack(() => offsets);
+      const target = tracks[track];
+      const end = tracks[track + 1];
+      const fromStart = Math.abs(gridElement.scrollLeft);
+      if (horizontal && (target < fromStart || end > fromStart + gridElement.clientWidth)) {
+        gridElement.scrollLeft = rtl ? -target : target;
+        scrollLeft = Math.abs(gridElement.scrollLeft);
       } else if (!horizontal && (target < gridElement.scrollTop || end > gridElement.scrollTop + gridElement.clientHeight)) {
         gridElement.scrollTop = target;
         scrollTop = target;
@@ -138,6 +149,7 @@
     <div
       bind:this={gridElement}
       bind:clientWidth={measuredWidth}
+      bind:clientHeight={measuredHeight}
       class={['canvas-grid', { horizontal }]}
       dir={side ? 'ltr' : undefined}
       role="grid"
@@ -145,7 +157,7 @@
       onkeydown={handleKeydown}
       onscroll={(event) => {
         scrollTop = event.currentTarget.scrollTop;
-        scrollLeft = event.currentTarget.scrollLeft;
+        scrollLeft = Math.abs(event.currentTarget.scrollLeft);
       }}
       aria-rowcount={rows}
       aria-colcount={columns}
@@ -243,6 +255,7 @@
     grid-template-columns: none;
     grid-template-rows: repeat(var(--rows), minmax(0, 1fr));
     grid-auto-columns: max-content;
+    justify-content: start;
     overflow-x: auto;
     overflow-y: hidden;
   }
