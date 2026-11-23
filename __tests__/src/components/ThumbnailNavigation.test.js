@@ -91,6 +91,10 @@ describe('ThumbnailNavigation', () => {
     createWrapper({ viewingDirection: 'right-to-left' });
     expect(screen.getByRole('navigation')).toHaveAttribute('dir', 'rtl');
   });
+  it.each(['far-left', 'far-right'])('numbers the %s grid from left to right for RTL books', (position) => {
+    createWrapper({ position, viewingDirection: 'right-to-left', thumbnailColumns: 2 });
+    expect(grid()).toHaveAttribute('dir', 'ltr');
+  });
   it('moves to the next canvas with the horizontal arrow key', () => {
     const setNextCanvas = vi.fn();
     createWrapper({ hasNextCanvas: true, setNextCanvas });

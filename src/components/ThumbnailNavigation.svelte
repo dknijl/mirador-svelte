@@ -139,6 +139,7 @@
       bind:this={gridElement}
       bind:clientWidth={measuredWidth}
       class={['canvas-grid', { horizontal }]}
+      dir={side ? 'ltr' : undefined}
       role="grid"
       tabindex="0"
       onkeydown={handleKeydown}

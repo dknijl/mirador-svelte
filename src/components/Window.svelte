@@ -124,11 +124,20 @@
     border-top: 1px solid var(--mirador-divider, #888);
     display: grid;
     flex: 0 0 auto;
-    grid-template-columns: minmax(max-content, 1fr) minmax(0, auto) minmax(max-content, 1fr);
+    grid-template-columns: minmax(max-content, 1fr) max-content minmax(max-content, 1fr);
     min-height: 36px;
     overflow-x: auto;
     scrollbar-width: thin;
     white-space: nowrap;
+  }
+  .bottom-bar :global(.workspace-controls .menu-button),
+  .bottom-bar :global(.mirador-zoom-controls button),
+  .bottom-bar :global(.window-sidebar [role='tab']) {
+    box-sizing: border-box;
+    min-height: 44px;
+    min-width: 44px;
+    font-size: 26px;
+    line-height: 1;
   }
   .workspace-controls,
   .workspace-options {

@@ -74,9 +74,6 @@
     flex-direction: column;
     width: 100%;
   }
-  .companion-area.left {
-    container-type: inline-size;
-  }
   .companion-area.mirador-companion-area-far-left {
     flex: 0 0 auto;
     width: 0;
