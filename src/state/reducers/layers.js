@@ -1,5 +1,5 @@
 import omit from 'lodash/omit';
-import deepmerge from 'deepmerge';
+import mergeConfig from '../../lib/mergeConfig';
 import ActionTypes from '../actions/action-types';
 
 /**
@@ -12,7 +12,7 @@ export const layersReducer = (state = {}, action) => {
         ...state,
         [action.windowId]: {
           ...state[action.windowId],
-          [action.canvasId]: deepmerge((state[action.windowId] || {})[action.canvasId] || {}, action.payload),
+          [action.canvasId]: mergeConfig((state[action.windowId] || {})[action.canvasId] || {}, action.payload),
         },
       };
     case ActionTypes.REMOVE_WINDOW:

@@ -1,5 +1,5 @@
 import { createSelector } from 'reselect';
-import deepmerge from 'deepmerge';
+import mergeConfig from '../../lib/mergeConfig';
 import { miradorSlice, EMPTY_ARRAY, EMPTY_OBJECT } from './utils';
 import { getWorkspace } from './getters';
 
@@ -71,7 +71,7 @@ export const getShowZoomControlsConfig = createSelector([getWorkspace, getConfig
  * @returns {object} {palette: {...}, typography: {...}, overrides: {...}, ...}
  */
 export const getTheme = createSelector([getConfig], ({ theme, themes, selectedTheme }) =>
-  deepmerge(theme, themes[selectedTheme] || {}),
+  mergeConfig(theme, themes[selectedTheme] || {}),
 );
 
 /**

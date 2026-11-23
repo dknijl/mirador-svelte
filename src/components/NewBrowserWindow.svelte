@@ -1,7 +1,7 @@
 <script>
   /**
    * Opens a browser window for a IIIF authentication flow and reports when it
-   * closes. Port of NewBrowserWindow.jsx; renders nothing.
+   * closes.
    */
   let { depWindow = undefined, features = undefined, name = undefined, onClose, url } = $props();
 

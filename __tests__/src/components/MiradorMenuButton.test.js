@@ -28,6 +28,15 @@ describe('MiradorMenuButton', () => {
     expect(await screen.findByRole('tooltip')).toHaveTextContent('The Label');
   });
 
+  it('places a left-start tooltip at the top left edge of its button', async () => {
+    createWrapper({ TooltipProps: { placement: 'left-start' } });
+    const button = screen.getByRole('button');
+    vi.spyOn(button, 'getBoundingClientRect').mockReturnValue(new DOMRect(40, 15, 60, 40));
+    await userEvent.setup().hover(button);
+    const tooltip = screen.getByRole('tooltip');
+    expect(tooltip).toHaveTextContent('The Label');
+    expect(tooltip).toHaveStyle({ left: '40px', top: '15px', transform: 'translate(-100%, 0%)' });
+  });
   it('keeps disabled buttons unavailable and hides their tooltip', async () => {
     const user = userEvent.setup();
     createWrapper({ disabled: true });
@@ -40,11 +49,13 @@ describe('MiradorMenuButton', () => {
   it('forwards semantic button attributes while omitting injected viewer props', () => {
     createWrapper({
       class: 'custom-button',
+      color: 'inherit',
       'data-testid': 'my-button',
       disabled: true,
     });
     const button = screen.getByTestId('my-button');
     expect(button).toHaveClass('menu-button', 'custom-button');
+    expect(getComputedStyle(button).color).toBe(getComputedStyle(document.body).color);
     expect(button).toBeDisabled();
     expect(button).not.toHaveAttribute('store');
     expect(button).not.toHaveAttribute('plugins');
@@ -52,7 +63,7 @@ describe('MiradorMenuButton', () => {
 
   it('renders an optional badge alongside the child content', () => {
     createWrapper({ badge: true, BadgeProps: { badgeContent: 3 } });
-    expect(screen.getByRole('button')).toHaveTextContent('icon');
+    expect(screen.getByRole('button')).toHaveTextContent(/^icon\s*3$/);
     expect(screen.getByText('3')).toHaveClass('badge');
   });
 });

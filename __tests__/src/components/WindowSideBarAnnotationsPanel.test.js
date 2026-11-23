@@ -34,7 +34,9 @@ describe('WindowSideBarAnnotationsPanel', () => {
   it('renders the annotationsCount', () => {
     createWrapper();
 
-    expect(screen.getByText('Showing 4 annotations')).toBeVisible();
+    const count = screen.getByText('Showing 4 annotations');
+    expect(count).toBeVisible();
+    expect(getComputedStyle(count).fontSize).toBe('14px');
   });
 
   test('renders a CanvasAnnotations for every selected canvas', () => {

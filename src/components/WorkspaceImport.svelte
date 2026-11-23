@@ -32,7 +32,7 @@
     box-shadow: 0 8px 32px #0005;
     color: CanvasText;
     left: 50%;
-    max-width: min(40rem, calc(100vw - 2rem));
+    max-width: min(600px, calc(100vw - 2rem));
     padding: 1.25rem;
     position: fixed;
     top: 50%;

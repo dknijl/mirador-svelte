@@ -1,4 +1,4 @@
-import deepmerge from 'deepmerge';
+import mergeConfig from '../lib/mergeConfig';
 import createStore from './store';
 import { importConfig } from './actions/config';
 import {
@@ -16,7 +16,7 @@ function createPluggableStore(config, plugins = []) {
 
   const store = createStore(getReducersFromPlugins(filteredPlugins), getSagasFromPlugins(filteredPlugins));
 
-  store.dispatch(importConfig(deepmerge(getConfigFromPlugins(filteredPlugins), config)));
+  store.dispatch(importConfig(mergeConfig(getConfigFromPlugins(filteredPlugins), config)));
 
   return store;
 }

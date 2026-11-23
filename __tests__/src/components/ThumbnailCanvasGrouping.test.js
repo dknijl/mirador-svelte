@@ -42,8 +42,15 @@ describe('ThumbnailCanvasGrouping', () => {
   });
   it('when clicked, updates the current canvas', async () => {
     wrapper.unmount();
+    wrapper = createWrapper({ currentCanvasId: 'other-canvas' });
+    expect(screen.getByRole('gridcell')).toHaveAttribute('aria-selected', 'false');
+    expect(screen.getByRole('button')).not.toHaveClass('current');
+    wrapper.unmount();
     const user = userEvent.setup();
-    wrapper = createWrapper({ index: 0, setCanvas });
+    const id = 'http://iiif.io/api/presentation/2.0/example/fixtures/canvas/24/c1.json';
+    wrapper = createWrapper({ index: 0, currentCanvasId: id, setCanvas });
+    expect(screen.getByRole('gridcell')).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('button')).toHaveClass('current');
     // eslint-disable-next-line testing-library/no-node-access
     await user.click(wrapper.container.querySelector('.mirador-thumbnail-nav-canvas-0'));
     expect(setCanvas).toHaveBeenCalledWith('http://iiif.io/api/presentation/2.0/example/fixtures/canvas/24/c1.json');

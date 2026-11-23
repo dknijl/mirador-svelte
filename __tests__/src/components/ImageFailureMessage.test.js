@@ -5,6 +5,9 @@ describe('ImageFailureMessage', () => {
   it('does not render when no images have failed', () => {
     const { container } = render(ImageFailureMessage, { imageUrls: ['https://example.com/image1.jpg'] });
 
+    const contents = container.cloneNode(true);
+    contents.normalize();
+    expect(contents).toBeEmptyDOMElement();
     expect(within(container).queryByRole('status')).not.toBeInTheDocument();
   });
 
@@ -44,6 +47,9 @@ describe('ImageFailureMessage', () => {
       ...mockContext,
     });
 
+    const contents = containerB.cloneNode(true);
+    contents.normalize();
+    expect(contents).toBeEmptyDOMElement();
     expect(within(containerB).queryByRole('status')).not.toBeInTheDocument();
   });
 

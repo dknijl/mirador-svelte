@@ -7,6 +7,8 @@ import CanvasGroupings from '@src/lib/CanvasGroupings';
 import createStore from '@src/state/store';
 import manifestJson from '../../fixtures/version-2/019.json';
 
+import zeroWidthFixture from '../../fixtures/version-2/zeroWidthCanvas.json';
+
 const fixtureCanvases = (fixture = manifestJson, view = 'single') =>
   new CanvasGroupings(Utils.parseManifest(fixture).getSequences()[0].getCanvases(), view).groupings();
 const manyGroupings = (count = 300) => {
@@ -65,7 +67,12 @@ describe('ThumbnailNavigation', () => {
     expect(screen.getByRole('navigation')).toHaveStyle({ width: '200px' });
   });
   it('doubles the configured strip width in book view', () => {
-    createWrapper({ position: 'far-right', view: 'book' });
+    const props = { canvasGroupings: fixtureCanvases(), thumbnailNavigation: { width: 100, height: 150, columns: 2 } };
+    const view = createWrapper({ ...props, position: 'far-bottom' });
+    expect(screen.getByRole('navigation')).toHaveStyle({ width: '100%' });
+    view.rerender({ ...props, position: 'far-right' });
+    expect(screen.getByRole('navigation')).toHaveStyle({ width: '200px' });
+    view.rerender({ ...props, position: 'far-right', view: 'book' });
     expect(screen.getByRole('navigation')).toHaveStyle({ width: '400px' });
   });
   it('uses configured height for the horizontal layout', () => {
@@ -162,5 +169,39 @@ describe('ThumbnailNavigation', () => {
   it('does not render when thumbnail navigation is off', () => {
     createWrapper({ position: 'off' });
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ['far-bottom', manifestJson, 'width', '88px'],
+    ['far-right', manifestJson, 'height', '123px'],
+    ['far-left', manifestJson, 'height', '123px'],
+    ['far-bottom', zeroWidthFixture, 'width', '100px'],
+    ['far-right', zeroWidthFixture, 'height', '150px'],
+  ])('sizes the first %s cell to its canvas (case %#)', (position, fixture, axis, size) => {
+    createWrapper({ position, canvasGroupings: fixtureCanvases(fixture), thumbnailColumns: 1 });
+    expect(cells()[0]).toHaveStyle({ [axis]: size });
+  });
+
+  it('places the unpaired last canvas in the first row of the second column', () => {
+    createWrapper({ position: 'far-bottom', thumbnailColumns: 2 });
+    expect(cells().map((cell) => [cell.getAttribute('aria-colindex'), cell.getAttribute('aria-rowindex')])).toEqual([
+      ['1', '1'],
+      ['1', '2'],
+      ['2', '1'],
+    ]);
+  });
+
+  it('keeps keyboard focus when the selected canvas changes', () => {
+    const props = { canvasIndex: 0, position: 'far-right', canvasGroupings: fixtureCanvases(), windowId: 'window' };
+    const view = createWrapper(props);
+    grid().focus();
+    const focus = vi.spyOn(HTMLElement.prototype, 'focus');
+    try {
+      view.rerender({ ...props, canvasIndex: 2 });
+      expect(focus).not.toHaveBeenCalled();
+      expect(grid()).toHaveFocus();
+    } finally {
+      focus.mockRestore();
+    }
   });
 });

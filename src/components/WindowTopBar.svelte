@@ -11,6 +11,7 @@
 
   let {
     removeWindow,
+    focusWindow = () => {},
     windowId,
     toggleWindowSideBar,
     maximizeWindow = () => {},
@@ -34,11 +35,15 @@
   }
 </script>
 
+<!-- The navigation landmark delegates window selection to both pointer and keyboard focus. -->
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <svelte:element
   this={component}
   class={ns('window-top-bar')}
   aria-label={t('windowNavigation')}
   role="navigation"
+  onmousedown={focusWindow}
+  onfocusin={focusWindow}
   draggable={windowDraggable ? true : undefined}
   data-mosaic-handle={windowDraggable ? '' : undefined}
 >

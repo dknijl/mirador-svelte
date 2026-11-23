@@ -1,11 +1,8 @@
-import deepmerge from 'deepmerge';
+import mergeConfig from '../../lib/mergeConfig';
 import settings from '../../config/settings';
 import ActionTypes from '../actions/action-types';
 
 const initialState = { ...settings };
-
-/** Overwrite arrays when deep merging */
-const overwriteMerge = (destinationArray, sourceArray, options) => sourceArray;
 
 /**
  * configReducer - does a deep merge of the config
@@ -14,23 +11,23 @@ export const configReducer = (state = initialState, action) => {
   switch (action.type) {
     case ActionTypes.UPDATE_CONFIG:
     case ActionTypes.IMPORT_CONFIG:
-      return deepmerge(state, action.config, { arrayMerge: overwriteMerge });
+      return mergeConfig(state, action.config, { replaceArrays: true });
     case ActionTypes.SET_CONFIG:
       return action.config;
     case ActionTypes.IMPORT_MIRADOR_STATE:
       return {
         ...(action.state.config || {}),
-        export: deepmerge(state.export || {}, action.state.config?.export || {}, {
-          arrayMerge: overwriteMerge,
+        export: mergeConfig(state.export || {}, action.state.config?.export || {}, {
+          replaceArrays: true,
         }),
-        requests: deepmerge(state.requests || {}, action.state.config?.requests || {}, {
-          arrayMerge: overwriteMerge,
+        requests: mergeConfig(state.requests || {}, action.state.config?.requests || {}, {
+          replaceArrays: true,
         }),
-        theme: deepmerge(state.theme || {}, action.state.config?.theme || {}, {
-          arrayMerge: overwriteMerge,
+        theme: mergeConfig(state.theme || {}, action.state.config?.theme || {}, {
+          replaceArrays: true,
         }),
-        themes: deepmerge(state.themes || {}, action.state.config?.themes || {}, {
-          arrayMerge: overwriteMerge,
+        themes: mergeConfig(state.themes || {}, action.state.config?.themes || {}, {
+          replaceArrays: true,
         }),
       };
     default:

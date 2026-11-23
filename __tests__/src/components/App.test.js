@@ -9,6 +9,7 @@ function createWrapper(props) {
 
 describe('App', () => {
   it('should asynchronously render all needed elements', async () => {
+    expect(screen.queryByRole('main')).not.toBeInTheDocument();
     createWrapper();
 
     expect(await screen.findByRole('main', {}, { timeout: 8000 })).toBeInTheDocument();

@@ -1,14 +1,26 @@
 <script>
-  let { theme, language, children, disableDrop = false } = $props();
+  import { onMount } from 'svelte';
+  import { createFullscreenHandle } from '../lib/fullscreen';
+  let { theme, language, children, disableDrop = false, class: className = '', onChange } = $props();
   let root;
   let fullscreen = $state(false);
+  const handle = createFullscreenHandle(() => root);
+  onMount(() => {
+    fullscreen = handle.active;
+    onChange?.(fullscreen, handle);
+  });
+  function fullscreenChanged() {
+    if (fullscreen === handle.active) return;
+    fullscreen = handle.active;
+    onChange?.(fullscreen, handle);
+  }
   const palette = $derived(theme?.palette ?? {});
 </script>
 
-<svelte:document onfullscreenchange={() => (fullscreen = document.fullscreenElement === root)} />
+<svelte:document onfullscreenchange={fullscreenChanged} />
 <div
   bind:this={root}
-  class="mirador-viewer-root fullscreen"
+  class="mirador-viewer-root fullscreen {className}"
   class:fullscreen-enabled={fullscreen}
   lang={language}
   dir={theme?.direction ?? 'ltr'}

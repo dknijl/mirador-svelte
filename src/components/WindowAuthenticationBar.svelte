@@ -46,7 +46,7 @@
               name="SanitizedHtml"
               component={SanitizedHtml}
               targetProps={{ htmlString: label, ruleSet }}
-            />{:else}{label}{/if}
+            />{:else if typeof label === 'function'}{@render label()}{:else}{label}{/if}
         </h3>
         <PluginTarget name="WindowAuthenticationBar" {store} {plugins} targetProps={pluginProps} />
         <button type="button" onclick={submit} {...ConfirmProps}>{confirmButton || t('login')}</button>
@@ -59,7 +59,7 @@
               name="SanitizedHtml"
               component={SanitizedHtml}
               targetProps={{ htmlString: label, ruleSet }}
-            />{:else}{label}{/if}
+            />{:else if typeof label === 'function'}{@render label()}{:else}{label}{/if}
         </h3>
         <PluginTarget name="WindowAuthenticationBar" {store} {plugins} targetProps={pluginProps} />
         {#if !open}<span class="continue">{continueLabel || t('continue')}</span>{/if}
@@ -71,14 +71,14 @@
                 name="SanitizedHtml"
                 component={SanitizedHtml}
                 targetProps={{ htmlString: header, ruleSet }}
-              />{:else}{header}{/if}
+              />{:else if typeof header === 'function'}{@render header()}{:else}{header}{/if}
             {#if header && description}:
             {/if}
             {#if ruleSet}<Connected
                 name="SanitizedHtml"
                 component={SanitizedHtml}
                 targetProps={{ htmlString: description, ruleSet }}
-              />{:else}{description}{/if}
+              />{:else if typeof description === 'function'}{@render description()}{:else}{description}{/if}
           </p>
           <div class="actions">
             <button type="button" onclick={() => (open = false)}>{t('cancel')}</button>

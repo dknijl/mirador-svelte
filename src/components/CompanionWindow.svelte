@@ -75,7 +75,7 @@
         <button type="button" aria-label={t('closeCompanionWindow')} onclick={onCloseClick}>×</button>
       {/if}
     </header>
-    <div class="companion-window-content">{@render children?.()}</div>
+    <div class="companion-window-content">{@render children?.({ closeCompanionWindow: onCloseClick })}</div>
     <button
       class="resize-handle"
       type="button"

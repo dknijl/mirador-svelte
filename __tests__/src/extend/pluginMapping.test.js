@@ -1,3 +1,4 @@
+import createPluggableStore from '@src/state/pluggableStore';
 import { createTargetToPluginMapping } from '@src/extend/pluginMapping';
 
 describe('createTargetToPluginMapping', () => {
@@ -50,6 +51,10 @@ it('leaves state-only and companion registrations out of UI slots', () => {
   expect(
     createTargetToPluginMapping([{ reducers: { example: () => 1 } }, { component: () => {}, companionWindowKey: 'example' }]),
   ).toEqual({});
+});
+it('installs a reducer-only plugin in the viewer store', () => {
+  const store = createPluggableStore({}, [{ reducers: { example: () => 1 } }]);
+  expect(store.getState().example).toBe(1);
 });
 it('isolates mappings between viewer instances', () => {
   const plugin = { target: 'Window', mode: 'wrap', component: () => {} };

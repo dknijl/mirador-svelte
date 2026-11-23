@@ -30,7 +30,7 @@
     color: CanvasText;
     left: 50%;
     max-height: 85vh;
-    max-width: min(40rem, calc(100vw - 2rem));
+    max-width: min(600px, calc(100vw - 2rem));
     overflow: auto;
     padding: 1.25rem;
     position: fixed;

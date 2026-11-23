@@ -103,4 +103,19 @@ describe('CompanionWindow', () => {
     createWrapper({ isDisplayed: false });
     expect(screen.queryByRole('region')).not.toBeInTheDocument();
   });
+
+  it('lets a child close its own panel', async () => {
+    const onCloseClick = vi.fn();
+    const children = createRawSnippet((getActions) => ({
+      render: () => '<button>Close from child</button>',
+      setup(button) {
+        const close = () => getActions().closeCompanionWindow();
+        button.addEventListener('click', close);
+        return () => button.removeEventListener('click', close);
+      },
+    }));
+    createWrapper({ children, onCloseClick });
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Close from child' }));
+    expect(onCloseClick).toHaveBeenCalledOnce();
+  });
 });

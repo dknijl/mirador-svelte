@@ -20,7 +20,10 @@ describe('CollectionInfo', () => {
     expect(screen.queryByRole('button', { name: 'Show collection' })).not.toBeInTheDocument();
   });
   it('without a collectionPath, renders nothing', () => {
-    createWrapper({ collectionPath: [] });
+    const { container } = createWrapper({ collectionPath: [] });
+    const contents = container.cloneNode(true);
+    contents.normalize();
+    expect(contents).toBeEmptyDOMElement();
     expect(screen.queryByRole('region')).not.toBeInTheDocument();
   });
   it('clicking the button fires showCollectionDialog', async () => {

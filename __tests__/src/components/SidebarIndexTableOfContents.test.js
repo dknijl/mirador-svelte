@@ -68,8 +68,11 @@ describe('SidebarIndexTableOfContents', () => {
   });
 
   it('does not render a TreeView if the tree structure is missing', () => {
-    render(SidebarIndexTableOfContents);
+    const { container } = render(SidebarIndexTableOfContents);
 
+    const contents = container.cloneNode(true);
+    contents.normalize();
+    expect(contents).toBeEmptyDOMElement();
     expect(screen.queryByRole('tree')).not.toBeInTheDocument();
   });
 

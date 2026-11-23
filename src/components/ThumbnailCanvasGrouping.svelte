@@ -26,6 +26,8 @@
   <div
     class="mirador-thumbnail-nav-container"
     role="gridcell"
+    style:width={Number.isFinite(style.width) ? Math.max(1, style.width - 12) + 'px' : undefined}
+    style:height={Number.isFinite(style.height) ? Math.max(1, style.height - 12) + 'px' : undefined}
     aria-selected={selected}
     aria-colindex={columnIndex + 1}
     aria-rowindex={rowIndex + 1}

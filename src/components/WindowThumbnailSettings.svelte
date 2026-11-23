@@ -33,7 +33,9 @@
         handleClose();
       }}
     >
-      <span aria-hidden="true" class:rtl={direction === 'rtl' && value === 'far-left'}>{icon}</span><span>{t(label)}</span>
+      <span aria-hidden="true" class:rtl={direction === 'rtl' && (value === 'far-left' || value === 'far-right')}>
+        {icon}
+      </span><span>{t(label)}</span>
     </button>
   {/each}
 </div>

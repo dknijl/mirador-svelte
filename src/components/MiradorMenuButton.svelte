@@ -19,6 +19,22 @@
     ...rest
   } = $props();
   let hovered = $state(false);
+  let anchor = $state();
+  function showTooltip(event) {
+    anchor = event.currentTarget.getBoundingClientRect();
+    hovered = true;
+  }
+  const tooltipStyle = $derived.by(() => {
+    if (!anchor) return '';
+    const [side, align] = (TooltipProps.placement || 'top').split('-');
+    const vertical = side === 'top' || side === 'bottom';
+    const fraction = align === 'start' ? 0 : align === 'end' ? 1 : 0.5;
+    const left = vertical ? anchor.left + anchor.width * fraction : side === 'left' ? anchor.left : anchor.right;
+    const top = !vertical ? anchor.top + anchor.height * fraction : side === 'top' ? anchor.top : anchor.bottom;
+    const x = vertical ? fraction : Number(side === 'left');
+    const y = vertical ? Number(side === 'top') : fraction;
+    return `left: ${left}px; top: ${top}px; transform: translate(${-100 * x}%, ${-100 * y}%);`;
+  });
   const attributes = $derived(
     Object.fromEntries(
       Object.entries(rest).filter(
@@ -38,10 +54,10 @@
   class:selected
   {...attributes}
   title={title || attributes['aria-label']}
-  onmouseenter={() => (hovered = true)}
+  onmouseenter={showTooltip}
   onmouseleave={() => (hovered = false)}
   onfocus={(event) => {
-    hovered = true;
+    showTooltip(event);
     onFocus?.(event);
   }}
   onblur={(event) => {
@@ -53,7 +69,7 @@
   {#if badge && BadgeProps.badgeContent !== undefined}<span class="badge">{BadgeProps.badgeContent}</span>{/if}
 </button>
 {#if hovered && !attributes.disabled && (title || attributes['aria-label'])}
-  <span class="tooltip" role="tooltip" style:--tooltip-placement={TooltipProps.placement || 'top'}>
+  <span class="tooltip" role="tooltip" style={tooltipStyle}>
     {title || attributes['aria-label']}
   </span>
 {/if}

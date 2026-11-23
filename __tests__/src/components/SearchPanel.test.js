@@ -1,4 +1,6 @@
 import { render, screen } from '@tests/utils/test-utils';
+import { http, HttpResponse } from 'msw';
+import { server } from '../../mocks/server';
 import userEvent from '@testing-library/user-event';
 import { contentSearchMock } from '../../mocks/contentSearchMock';
 import manifestFixtureFg165hz3589 from '../../fixtures/version-2/fg165hz3589.json';
@@ -106,6 +108,13 @@ describe('SearchPanel', () => {
   it('suggests searches and dispatches the encoded request', async () => {
     const user = userEvent.setup();
     expect(searchUrl).toBeDefined();
+    let requestedUrl;
+    server.use(
+      http.get(searchUrl, ({ request }) => {
+        requestedUrl = request.url;
+        return HttpResponse.json(contentSearchMock);
+      }),
+    );
     const wrapper = createWrapper({}, { window: { suggestedSearches: ['Dry Cleaning & Laundry'] } });
 
     const suggestionBtn = screen.getByRole('button', {
@@ -115,8 +124,12 @@ describe('SearchPanel', () => {
 
     await user.click(suggestionBtn);
 
-    // The focused component store has no network saga; verify the real action
-    // dispatch captured the full encoded service URL and user query.
+    const hits = await screen.findAllByRole('listitem');
+    expect(hits).toHaveLength(3);
+    expect(hits[0]).toHaveTextContent('1');
+    expect(hits[0]).toHaveTextContent('Dry Cleaning');
+    expect(hits[0]).toHaveTextContent(/& Laundry - \(Located at side of Medical Building\)/);
+    expect(requestedUrl).toBe(`${searchUrl}?q=Dry+Cleaning+%26+Laundry`);
     const search = wrapper.store.getState().searches.window.xyz;
     expect(search.query).toBe('Dry Cleaning & Laundry');
     expect(search.data).toHaveProperty(`${searchUrl}?q=Dry+Cleaning+%26+Laundry`);

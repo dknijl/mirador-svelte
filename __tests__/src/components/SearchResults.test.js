@@ -74,6 +74,7 @@ describe('SearchResults', () => {
     createWrapper({});
 
     expect(screen.getByRole('listitem')).toHaveTextContent(/Light up the moose/);
+    expect(screen.getByRole('button', { name: /Light up the moose/ })).toBeVisible();
   });
 
   it('can focus on a single item', async () => {
@@ -111,7 +112,7 @@ describe('SearchResults', () => {
         searchHits: [],
       });
 
-      expect(screen.getByText('No results found')).toBeInTheDocument();
+      expect(screen.getByText('No results found')).toHaveClass('no-results');
     });
 
     it('while fetching', () => {

@@ -6,7 +6,10 @@ const pluginFor = (target) => ({ target, mode: 'add', component: AddComponent })
 
 describe('WindowTopBarPluginMenu', () => {
   it('renders nothing when the target has no plugins', () => {
-    render(WindowTopBarPluginMenu, { windowId: 'abc123', plugins: [] });
+    const { container } = render(WindowTopBarPluginMenu, { windowId: 'abc123', plugins: [] });
+    const contents = container.cloneNode(true);
+    contents.normalize();
+    expect(contents).toBeEmptyDOMElement();
     expect(screen.queryByRole('button', { name: 'Window options' })).not.toBeInTheDocument();
   });
 

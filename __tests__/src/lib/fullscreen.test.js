@@ -38,12 +38,21 @@ describe('viewer fullscreen', () => {
     expect(document.exitFullscreen).toHaveBeenCalledOnce();
   });
   it('updates the fullscreen class on document changes', () => {
-    const view = render(AppProviders, { children: markup('<span>content</span>') });
+    const onChange = vi.fn();
+    const view = render(AppProviders, { onChange, class: 'my-class', children: markup('<span>content</span>') });
     const root = view.container.querySelector('.fullscreen');
+    expect(onChange).toHaveBeenCalledWith(false, expect.objectContaining({ active: false }));
+    const viewerHandle = onChange.mock.calls[0][1];
+    expect(root).toHaveClass('fullscreen', 'my-class');
     expect(root).toContainElement(screen.getByText('content'));
     expect(root).not.toHaveClass('fullscreen-enabled');
     document.fullscreenElement = root;
     fireEvent(document, new Event('fullscreenchange'));
     expect(root).toHaveClass('fullscreen-enabled');
+    expect(root).toHaveStyle({ height: '100%', width: '100%' });
+    expect(onChange).toHaveBeenLastCalledWith(true, viewerHandle);
+    document.fullscreenElement = null;
+    fireEvent(document, new Event('fullscreenchange'));
+    expect(onChange).toHaveBeenLastCalledWith(false, viewerHandle);
   });
 });

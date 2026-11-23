@@ -32,70 +32,65 @@
   const navWidth = $derived(horizontal ? '100%' : `${preferredWidth * columnsPref}px`);
   const navHeight = $derived(horizontal ? `${thumbnailNavigation.height || 130}px` : '100%');
   const focusedGroup = $derived(view === 'book' ? Math.ceil(canvasIndex / 2) : canvasIndex);
-  const sideCellHeight = $derived(Math.max(80, preferredWidth * 1.25));
-  const bottomCellHeight = $derived(Math.max(1, Math.floor((thumbnailNavigation.height || 130) / bottomRows)));
-  const visibleRange = $derived.by(() => {
-    const overscan = 4;
-    if (horizontal) {
-      const width = gridElement?.clientWidth || preferredWidth * 5;
-      let column = 0;
-      let offset = 0;
-      while (column < columns && offset + columnWidth(column) <= scrollLeft) {
-        offset += columnWidth(column);
-        column += 1;
-      }
-      const first = Math.max(0, column - overscan);
-      while (column < columns && offset < scrollLeft + width) {
-        offset += columnWidth(column);
-        column += 1;
-      }
-      const last = Math.min(columns, column + overscan);
-      return { start: first * bottomRows, end: Math.min(canvasGroupings.length, last * bottomRows) };
+  const spacing = 12;
+  const scrollbar = 6;
+  const fallbackHeight = $derived(thumbnailNavigation.height || 130);
+  const bottomCellHeight = $derived(Math.max(1, Math.floor((fallbackHeight - spacing - scrollbar) / bottomRows)));
+  let measuredWidth = $state(0);
+  const sideWidth = $derived(measuredWidth ? measuredWidth / columns : preferredWidth);
+
+  function groupSize(group) {
+    const aspect = group.reduce(
+      (sum, canvas) => sum + (canvas.getWidth?.() ?? canvas.width) / (canvas.getHeight?.() ?? canvas.height),
+      0,
+    );
+    const size = horizontal
+      ? Math.ceil(bottomCellHeight * aspect)
+      : Math.ceil(((sideWidth - spacing - scrollbar) * group.length) / aspect);
+    if (!Number.isFinite(size) || size <= 0) return (horizontal ? preferredWidth : fallbackHeight) + spacing;
+    return (horizontal ? size : Math.max(size, Math.round(fallbackHeight / 3))) + spacing;
+  }
+
+  // The same track offsets drive the CSS grid, overscan spacers and selection scrolling.
+  const perTrack = $derived(horizontal ? bottomRows : columns);
+  const offsets = $derived.by(() => {
+    const result = [0];
+    for (let start = 0; start < canvasGroupings.length; start += perTrack) {
+      const extent = Math.max(...canvasGroupings.slice(start, start + perTrack).map(groupSize));
+      result.push(result.at(-1) + extent);
     }
-    const height = gridElement?.clientHeight || sideCellHeight * 5;
-    const first = Math.max(0, Math.floor(scrollTop / sideCellHeight) - overscan);
-    const last = Math.min(rows, Math.ceil((scrollTop + height) / sideCellHeight) + overscan);
-    return { start: first * columns, end: Math.min(canvasGroupings.length, last * columns) };
+    return result;
   });
+
+  function trackAt(pixel) {
+    let lo = 0;
+    let hi = offsets.length - 1;
+    while (lo < hi) {
+      const mid = Math.floor((lo + hi) / 2);
+      if (offsets[mid + 1] <= pixel) lo = mid + 1;
+      else hi = mid;
+    }
+    return lo;
+  }
+
+  const visibleRange = $derived.by(() => {
+    const offset = horizontal ? scrollLeft : scrollTop;
+    const extent = horizontal ? gridElement?.clientWidth || preferredWidth * 5 : gridElement?.clientHeight || fallbackHeight * 5;
+    const first = Math.max(0, trackAt(offset) - 4);
+    const last = Math.min(offsets.length - 1, trackAt(offset + extent) + 5);
+    return {
+      start: first * perTrack,
+      end: Math.min(last * perTrack, canvasGroupings.length),
+      before: offsets[first],
+      after: offsets.at(-1) - offsets[last],
+    };
+  });
+
   const visibleGroupings = $derived(canvasGroupings.slice(visibleRange.start, visibleRange.end));
-
-  function groupingAspect(group) {
-    if (!group?.length) return 1;
-    return group.reduce((total, canvas) => {
-      const width = canvas.getWidth?.() || canvas.width || 1;
-      const height = canvas.getHeight?.() || canvas.height || 1;
-      return total + (width > 0 && height > 0 ? width / height : 1);
-    }, 0);
-  }
-
-  function columnWidth(column) {
-    const first = column * bottomRows;
-    const last = Math.min(first + bottomRows, canvasGroupings.length);
-    let width = preferredWidth + 12;
-    for (let index = first; index < last; index += 1) {
-      width = Math.max(width, Math.ceil(bottomCellHeight * groupingAspect(canvasGroupings[index])) + 12);
-    }
-    return width;
-  }
-
-  function columnOffset(column) {
-    let offset = 0;
-    for (let index = 0; index < column; index += 1) offset += columnWidth(index);
-    return offset;
-  }
-
-  function columnsWidth(first, last) {
-    let width = 0;
-    for (let index = first; index < last; index += 1) width += columnWidth(index);
-    return width;
-  }
-
-  function cellStyle(index) {
-    if (horizontal) {
-      const width = columnWidth(Math.floor(index / bottomRows));
-      return `width:${width}px;height:${bottomCellHeight}px`;
-    }
-    return `width:100%;height:${sideCellHeight}px`;
+  function cellDimensions(index) {
+    const track = Math.floor(index / perTrack);
+    const extent = offsets[track + 1] - offsets[track];
+    return { width: horizontal ? extent : sideWidth, height: horizontal ? bottomCellHeight : extent };
   }
 
   function handleKeydown(event) {
@@ -113,16 +108,14 @@
   $effect(() => {
     const current = focusedGroup;
     if (current < 0 || current >= canvasGroupings.length) return;
-    if (horizontal && gridElement) {
-      const column = Math.floor(current / bottomRows);
-      const target = columnOffset(column);
-      if (target < gridElement.scrollLeft || target + columnWidth(column) > gridElement.scrollLeft + gridElement.clientWidth) {
+    if (gridElement) {
+      const track = Math.floor(current / perTrack);
+      const target = offsets[track];
+      const end = offsets[track + 1];
+      if (horizontal && (target < gridElement.scrollLeft || end > gridElement.scrollLeft + gridElement.clientWidth)) {
         gridElement.scrollLeft = target;
         scrollLeft = target;
-      }
-    } else if (gridElement) {
-      const target = Math.floor(current / columns) * sideCellHeight;
-      if (target < gridElement.scrollTop || target + sideCellHeight > gridElement.scrollTop + gridElement.clientHeight) {
+      } else if (!horizontal && (target < gridElement.scrollTop || end > gridElement.scrollTop + gridElement.clientHeight)) {
         gridElement.scrollTop = target;
         scrollTop = target;
       }
@@ -144,6 +137,7 @@
     {#if side}<h3>{t('contents')}</h3>{/if}
     <div
       bind:this={gridElement}
+      bind:clientWidth={measuredWidth}
       class={['canvas-grid', { horizontal }]}
       role="grid"
       tabindex="0"
@@ -154,24 +148,25 @@
       }}
       aria-rowcount={rows}
       aria-colcount={columns}
-      style={`--columns:${columns};--rows:${rows};--cell-width:${preferredWidth}px;--cell-height:${horizontal ? bottomCellHeight : sideCellHeight}px`}
+      style={`--columns:${columns};--rows:${rows};--cell-width:${preferredWidth}px;--cell-height:${bottomCellHeight}px`}
     >
       {#if visibleRange.start > 0}
         <div
           class={{ 'side-spacer': !horizontal, 'bottom-spacer': horizontal }}
-          style:grid-row={!horizontal ? `span ${Math.floor(visibleRange.start / columns)}` : undefined}
-          style:grid-column={horizontal ? `span ${Math.floor(visibleRange.start / bottomRows)}` : undefined}
           aria-hidden="true"
-          style={horizontal
-            ? `width:${columnsWidth(0, Math.floor(visibleRange.start / bottomRows))}px`
-            : `height:${Math.floor(visibleRange.start / columns) * sideCellHeight}px`}
+          style={horizontal ? `width:${visibleRange.before}px` : `height:${visibleRange.before}px`}
         ></div>
       {/if}
       {#each visibleGroupings as grouping, visibleIndex (grouping[0]?.id || visibleRange.start + visibleIndex)}
         {@const index = visibleRange.start + visibleIndex}
         {@const columnIndex = horizontal ? Math.floor(index / bottomRows) : index % columns}
         {@const rowIndex = horizontal ? index % bottomRows : Math.floor(index / columns)}
-        <div data-canvas-group-index={index} style={cellStyle(index)}>
+        {@const dimensions = cellDimensions(index)}
+        <div
+          data-canvas-group-index={index}
+          style:width={horizontal ? dimensions.width + 'px' : '100%'}
+          style:height={dimensions.height + 'px'}
+        >
           <Connected
             name="ThumbnailCanvasGrouping"
             component={ThumbnailCanvasGrouping}
@@ -183,7 +178,7 @@
               columnIndex,
               rowIndex,
               position,
-              style: { width: preferredWidth, height: horizontal ? bottomCellHeight : sideCellHeight },
+              style: dimensions,
               windowId,
             }}
           />
@@ -192,12 +187,8 @@
       {#if visibleRange.end < canvasGroupings.length}
         <div
           class={{ 'side-spacer': !horizontal, 'bottom-spacer': horizontal }}
-          style:grid-row={!horizontal ? `span ${rows - Math.ceil(visibleRange.end / columns)}` : undefined}
-          style:grid-column={horizontal ? `span ${columns - Math.ceil(visibleRange.end / bottomRows)}` : undefined}
           aria-hidden="true"
-          style={horizontal
-            ? `width:${columnsWidth(Math.ceil(visibleRange.end / bottomRows), columns)}px`
-            : `height:${(rows - Math.ceil(visibleRange.end / columns)) * sideCellHeight}px`}
+          style={horizontal ? `width:${visibleRange.after}px` : `height:${visibleRange.after}px`}
         ></div>
       {/if}
     </div>
@@ -244,7 +235,7 @@
     overscroll-behavior: contain;
   }
   .canvas-grid:not(.horizontal) {
-    grid-auto-rows: var(--cell-height);
+    grid-auto-rows: max-content;
   }
   .canvas-grid.horizontal {
     grid-auto-flow: column;

@@ -1,4 +1,5 @@
-import { render, screen } from '@tests/utils/test-utils';
+import { render, screen, fireEvent } from '@tests/utils/test-utils';
+import { onTestFinished } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import WindowTopBar from '@src/components/WindowTopBar.svelte';
 
@@ -23,6 +24,12 @@ describe('WindowTopBar', () => {
   });
 
   it('uses allow flags to override defaults', () => {
+    const original = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'requestFullscreen');
+    Object.defineProperty(HTMLElement.prototype, 'requestFullscreen', { configurable: true, value: vi.fn() });
+    onTestFinished(() => {
+      if (original) Object.defineProperty(HTMLElement.prototype, 'requestFullscreen', original);
+      else Reflect.deleteProperty(HTMLElement.prototype, 'requestFullscreen');
+    });
     render(WindowTopBar, {
       ...baseProps,
       allowWindowSideBar: false,
@@ -31,6 +38,7 @@ describe('WindowTopBar', () => {
       allowTopMenuButton: false,
       allowFullscreen: true,
     });
+    expect(screen.getByRole('button', { name: 'Full screen' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Show sidebar' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Window views & thumbnail display' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Maximize window' })).not.toBeInTheDocument();
@@ -73,5 +81,12 @@ describe('WindowTopBar', () => {
   it('allows the maximize button to be hidden', () => {
     render(WindowTopBar, { ...baseProps, allowMaximize: false });
     expect(screen.queryByRole('button', { name: 'Maximize window' })).not.toBeInTheDocument();
+  });
+
+  it('focuses the window on toolbar mouse down', () => {
+    const focusWindow = vi.fn();
+    render(WindowTopBar, { ...baseProps, focusWindow });
+    fireEvent.mouseDown(screen.getByRole('navigation'));
+    expect(focusWindow).toHaveBeenCalledTimes(1);
   });
 });

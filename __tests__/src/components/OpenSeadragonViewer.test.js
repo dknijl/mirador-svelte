@@ -139,6 +139,8 @@ describe('OpenSeadragonViewer', () => {
         expect(screen.getByRole('status')).toHaveTextContent(/Problem loading image/);
         view.unmount();
       }
+      createWrapper({ infoResponses, nonTiledImages, failedImages: new Set(['http://example.com/other']) });
+      expect(screen.queryByRole('status')).not.toBeInTheDocument();
     });
   });
 });

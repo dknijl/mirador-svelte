@@ -1,6 +1,7 @@
 import { render, screen, within, markup } from '@tests/utils/test-utils';
 import PluginTarget from '@src/extend/PluginTarget.svelte';
 import AddA from '../../integration/components/AddComponentA.svelte';
+import StateDependent from '../../integration/components/StateDependentComponent.svelte';
 import AddB from '../../integration/components/AddComponentB.svelte';
 import WrapA from '../../integration/components/WrapComponentA.svelte';
 import WrapB from '../../integration/components/WrapComponentB.svelte';
@@ -18,6 +19,14 @@ describe('native Svelte extension points', () => {
     create([plugin(AddA, 'add'), plugin(AddB, 'add'), plugin(Replace, 'add', 'Elsewhere')]);
     expect(screen.getAllByText(/Plugin [AB]/).map((el) => el.textContent)).toEqual(['Plugin A', 'Plugin B']);
     expect(screen.queryByTestId('valid-plugin-a')).not.toBeInTheDocument();
+  });
+  it('keeps host style classes out of added plugin props', () => {
+    const mapStateToProps = vi.fn(() => ({ manifestId: 'example' }));
+    create([{ ...plugin(StateDependent, 'add'), mapStateToProps }], {
+      targetProps: { classes: { root: 'host' }, windowId: 'w' },
+    });
+    expect(screen.getByRole('button', { name: 'Plugin:example' })).toBeInTheDocument();
+    expect(mapStateToProps).toHaveBeenCalledWith(expect.anything(), { windowId: 'w' });
   });
   it('nests the wrappers in registration order and passes children through both', () => {
     create([plugin(WrapA, 'wrap'), plugin(WrapB, 'wrap')]);

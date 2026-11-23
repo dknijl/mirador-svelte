@@ -81,7 +81,11 @@ describe('WindowThumbnailSettings', () => {
   it('when rtl flips an icon', () => {
     createWrapper({ direction: 'rtl' });
 
-    // eslint-disable-next-line testing-library/no-node-access
-    expect(screen.getByRole('menuitemradio', { name: /Left/ }).querySelector('span')).toHaveClass('rtl');
+    for (const name of [/Left/, /Right/]) {
+      // eslint-disable-next-line testing-library/no-node-access -- Verify the displayed direction indicator itself.
+      const icon = screen.getByRole('menuitemradio', { name }).querySelector('span');
+      expect(icon).toHaveClass('rtl');
+      expect(getComputedStyle(icon).transform).toBe('rotate(180deg)');
+    }
   });
 });

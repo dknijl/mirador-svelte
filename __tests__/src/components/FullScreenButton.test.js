@@ -36,6 +36,7 @@ describe('FullScreenButton', () => {
     const user = userEvent.setup();
     await user.click(screen.getByRole('button', { name: 'Full screen' }));
     expect(requestFullscreen).toHaveBeenCalledOnce();
+    expect(requestFullscreen.mock.contexts[0]).toBe(root);
     await user.click(screen.getByRole('button', { name: 'Exit full screen' }));
     expect(document.exitFullscreen).toHaveBeenCalledOnce();
   });

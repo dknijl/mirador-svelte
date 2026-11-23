@@ -2,9 +2,7 @@
   /**
    * Handles IIIF Auth token validation using iframe message events.
    *
-   * Svelte port of the former IIIFIFrameCommunication.jsx. Defaults mirror the
-   * old default props; any extra attribute (including `aria-hidden`, `title`)
-   * is forwarded to the iframe through `rest`.
+   * Additional attributes are forwarded to the iframe.
    */
   let {
     frameBorder = 0,
