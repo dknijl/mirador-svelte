@@ -13,13 +13,14 @@
     <Connected name="WorkspaceControlPanel" component={Controls} targetProps={{ part, variant: controlPanelVariant }} />
   {/if}
 {/snippet}
-{#snippet workspaceControls()}{@render controls('primary')}{/snippet}
-{#snippet workspaceOptions()}{@render controls('options')}{/snippet}
+{#snippet workspaceControls()}{#if !isWorkspaceAddVisible}{@render controls('primary')}{/if}{/snippet}
+{#snippet workspaceOptions()}{#if !isWorkspaceAddVisible}{@render controls('options')}{/if}{/snippet}
 <main class="mirador-viewer" {lang} aria-label={t('workspace')}>
+  <div class="reader" class:covered={isWorkspaceAddVisible} inert={isWorkspaceAddVisible}>
+    <Connected name="Workspace" component={Workspace} targetProps={{ workspaceControls, workspaceOptions }} />
+  </div>
   {#if isWorkspaceAddVisible}
     <Connected name="WorkspaceAdd" component={Add} />
-  {:else}
-    <Connected name="Workspace" component={Workspace} targetProps={{ workspaceControls, workspaceOptions }} />
   {/if}
   <Connected name="ErrorDialog" component={Errors} />
   <Background {store} {plugins} />
@@ -29,6 +30,13 @@
 {/if}
 
 <style>
+  .reader {
+    position: absolute;
+    inset: 0;
+  }
+  .covered {
+    visibility: hidden;
+  }
   main {
     flex: 1;
     min-height: 0;

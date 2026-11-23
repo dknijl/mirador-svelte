@@ -48,6 +48,18 @@ describe('WorkspaceMosaic', () => {
   });
 
   describe('componentDidUpdate', () => {
+    it('repositions the mounted reader when opening a second window', async () => {
+      const props = { tile, windowIds: ['1'], updateWorkspaceMosaicLayout: vi.fn() };
+      const { container, rerender } = createWrapper(props);
+      const firstReader = screen.getByLabelText('Window:');
+
+      await rerender({ ...props, windowIds: ['1', '2'] });
+
+      expect(screen.getAllByLabelText('Window:')[0]).toBe(firstReader);
+      expect(container.querySelector('[data-window-id="1"]')).toHaveStyle({ right: '50%' });
+      expect(container.querySelector('[data-window-id="2"]')).toHaveStyle({ left: '50%' });
+    });
+
     it('updates the workspace layout when windows change', () => {
       const updateWorkspaceMosaicLayout = vi.fn();
       wrapper = createWrapper({

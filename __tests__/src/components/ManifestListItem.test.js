@@ -72,6 +72,16 @@ describe('ManifestListItem', () => {
     await user.click(screen.getByRole('button'));
     expect(addWindow).toHaveBeenCalledTimes(1);
   });
+  it('opens the resource and closes the list when its metadata is clicked', async () => {
+    const addWindow = vi.fn();
+    const handleClose = vi.fn();
+    createWrapper({ provider: 'Library', addWindow, handleClose });
+
+    await userEvent.click(screen.getByText('Library'));
+    expect(addWindow).toHaveBeenCalledWith({ manifestId: 'http://example.com' });
+    expect(handleClose).toHaveBeenCalledOnce();
+  });
+
   it('uses the manifest id if the title is not available', () => {
     createWrapper({ ready: true, title: null });
     expect(screen.getByRole('button')).toHaveTextContent('http://example.com');

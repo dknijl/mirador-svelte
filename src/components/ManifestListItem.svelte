@@ -24,6 +24,7 @@
     plugins = [],
     store,
   } = $props();
+  const titleId = $props.id();
   let itemButton = $state();
 
   let requested;
@@ -54,27 +55,29 @@
       targetProps={{ manifestId }}
     />
   {:else if ready}
-    <div class="manifest-item">
-      <button
-        bind:this={itemButton}
-        class="manifest-title"
-        onclick={() => {
-          addWindow({ manifestId });
-          handleClose();
-        }}
-      >
+    <button
+      bind:this={itemButton}
+      type="button"
+      aria-labelledby={titleId}
+      class="manifest-item resource-button"
+      onclick={() => {
+        addWindow({ manifestId });
+        handleClose();
+      }}
+    >
+      <span class="manifest-title">
         {#if thumbnail}<img class="thumbnail" src={thumbnail} alt="" />{:else}<span
             class="thumbnail-placeholder"
             aria-hidden="true"
           ></span>{/if}
-        <span class="title">
+        <span class="title" id={titleId}>
           {#if isCollection}<small>{t(isMultipart ? 'multipartCollection' : 'collection')}</small>{/if}
           <strong>{title || manifestId}</strong>
         </span>
-      </button>
-      <div class="manifest-meta"><span>{provider}</span><span>{t('numItems', { count: size, number: size })}</span></div>
+      </span>
+      <span class="manifest-meta"><span>{provider}</span><span>{t('numItems', { count: size, number: size })}</span></span>
       {#if manifestLogo}<img class="logo" src={manifestLogo} alt="" />{/if}
-    </div>
+    </button>
   {:else}
     <div class="manifest-item loading" aria-label={t('loading')} aria-busy="true">
       <span class="thumbnail-placeholder"></span><span class="skeleton"></span>
@@ -87,7 +90,6 @@
     border-bottom: 1px solid #ddd;
     border-left: 4px solid transparent;
     list-style: none;
-    padding: 0.5rem 1rem;
   }
   li.active {
     border-left-color: var(--mirador-primary, #1976d2);
@@ -97,20 +99,24 @@
     display: grid;
     gap: 0.75rem;
     grid-template-columns: minmax(12rem, 5fr) minmax(8rem, 4fr) minmax(3rem, 3fr);
+    padding: 0.5rem 1rem;
+    box-sizing: border-box;
     width: 100%;
   }
-  .manifest-title {
+  .resource-button {
     align-items: center;
     background: transparent;
     border: 0;
     color: inherit;
     cursor: pointer;
-    display: flex;
     font: inherit;
+    text-align: start;
+  }
+  .manifest-title {
+    display: flex;
+    align-items: center;
     gap: 1rem;
     min-width: 0;
-    padding: 0;
-    text-align: left;
   }
   .thumbnail,
   .thumbnail-placeholder {

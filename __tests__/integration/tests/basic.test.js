@@ -44,6 +44,11 @@ describe('Basic end to end Mirador', () => {
     });
     expect(element).toBeInTheDocument();
 
+    fireEvent.click(screen.getByRole('button', { name: 'Add resource' }));
+    expect(await screen.findByRole('listitem')).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: 'Close resource list' }));
+    expect(await screen.findByRole('heading', { name: manifest.label.en[0] })).toBe(element);
+
     // Switching to elastic mode should keep the loaded manifest visible
     fireEvent.click(screen.getByRole('button', { name: 'Workspace settings' }));
     fireEvent.click(await screen.findByRole('menuitem', { name: /Select workspace type/i }));

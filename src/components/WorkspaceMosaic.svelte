@@ -12,6 +12,8 @@
   let resizing;
   const tree = $derived(reconcileLayout(layout, windowIds));
   const geometry = $derived(mosaicGeometry(tree));
+  // Key the reader by its stable ID so geometry updates only reposition its tile.
+  const boxes = $derived(new Map(geometry.tiles.map((box) => [box.id, box])));
   $effect(() => {
     if (!isEqual(layout, tree)) updateWorkspaceMosaicLayout(tree);
   });
@@ -70,18 +72,19 @@
 {/snippet}
 
 <div class="mirador-mosaic" role="group" bind:this={root} ondragstart={startDrag} ondragend={() => (dragging = null)}>
-  {#each geometry.tiles as box (box.id)}
+  {#each boxes.keys() as windowId (windowId)}
+    {@const box = boxes.get(windowId)}
     <div
       class="mosaic-tile"
-      data-window-id={box.id}
+      data-window-id={windowId}
       hidden={box.hidden}
       style:left={box.x + '%'}
       style:top={box.y + '%'}
       style:right={100 - box.x - box.width + '%'}
       style:bottom={100 - box.y - box.height + '%'}
     >
-      <div class="mosaic-window" class:tabbed={box.tabbed}>{@render tile?.(box.id)}</div>
-      {@render targets(box.id)}
+      <div class="mosaic-window" class:tabbed={box.tabbed}>{@render tile?.(windowId)}</div>
+      {@render targets(windowId)}
     </div>
   {/each}
   {#each geometry.tabs as group (group.path.join('.'))}
