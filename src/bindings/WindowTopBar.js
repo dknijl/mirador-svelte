@@ -1,5 +1,5 @@
 import * as actions from '../state/actions';
-import { getWindowConfig, isFocused, getWindow } from '../state/selectors';
+import { getConfig, getWindowConfig, isFocused, getWindow } from '../state/selectors';
 
 /** mapStateToProps */
 export const mapStateToProps = (state, { windowId }) => {
@@ -7,7 +7,7 @@ export const mapStateToProps = (state, { windowId }) => {
 
   return {
     allowClose: config.allowClose,
-    allowFullscreen: config.allowFullscreen,
+    allowFullscreen: config.allowFullscreen && !getConfig(state).workspaceControlPanel.enabled,
     allowMaximize: config.allowMaximize,
     allowTopMenuButton: config.allowTopMenuButton,
     allowWindowSideBar: config.allowWindowSideBar,

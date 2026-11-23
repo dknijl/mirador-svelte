@@ -173,10 +173,10 @@ describe('ThumbnailNavigation', () => {
 
   it.each([
     ['far-bottom', manifestJson, 'width', '88px'],
-    ['far-right', manifestJson, 'height', '123px'],
-    ['far-left', manifestJson, 'height', '123px'],
+    ['far-right', manifestJson, 'height', '135px'],
+    ['far-left', manifestJson, 'height', '135px'],
     ['far-bottom', zeroWidthFixture, 'width', '100px'],
-    ['far-right', zeroWidthFixture, 'height', '150px'],
+    ['far-right', zeroWidthFixture, 'height', '162px'],
   ])('sizes the first %s cell to its canvas (case %#)', (position, fixture, axis, size) => {
     createWrapper({ position, canvasGroupings: fixtureCanvases(fixture), thumbnailColumns: 1 });
     expect(cells()[0]).toHaveStyle({ [axis]: size });

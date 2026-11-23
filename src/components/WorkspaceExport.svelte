@@ -4,8 +4,7 @@
   let copied = $state(false);
   const exportedState = $derived(JSON.stringify(exportableState, null, 2));
   async function copyExport() {
-    copy(exportedState);
-    copied = true;
+    copied = await copy(exportedState, { fallbackToPrompt: true });
   }
 </script>
 

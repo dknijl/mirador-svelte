@@ -37,11 +37,9 @@ export default [
     },
 
     plugins: {
-      // eslint-plugin-import and jest-dom still declare ESLint
-      // peer deps up to ^9; wrap them with fixupPluginRules so their internal use
-      // of removed context APIs (e.g. getFilename, getSourceCode) keeps working.
+      // eslint-plugin-import still uses context APIs removed in ESLint 10.
       import: fixupPluginRules(importPlugin),
-      'jest-dom': fixupPluginRules(jestDomPlugin),
+      'jest-dom': jestDomPlugin,
       'testing-library': testingLibraryPlugin,
     },
 
@@ -118,8 +116,10 @@ export default [
           moduleDirectory: ['node_modules', 'src', '__tests__'],
         },
       },
-      // eyeroll. https://github.com/import-js/eslint-plugin-import/issues/2703
-      'import/core-modules': ['@redux-devtools/extension', 'svelte/reactivity'],
+      // The legacy import resolver ignores package exports. Validate these ESM entries with Node.
+      'import/core-modules': ['@redux-devtools/extension', 'chalk', 'svelte/reactivity', 'uuid'].filter((id) =>
+        import.meta.resolve(id),
+      ),
       'testing-library/utils-module': '@tests/utils/test-utils',
     },
   },

@@ -72,8 +72,7 @@ describe('ThumbnailCanvasGrouping', () => {
       });
     });
     it('in button div', () => {
-      // The cell is inset by the 12px SPACING, so the canvas fills the cell's
-      // content box instead of repeating the outer cell width.
+      expect(screen.getByRole('presentation')).toHaveStyle({ objectFit: 'contain', maxWidth: '100%', height: '58px' });
       expect(screen.getByRole('button', { name: '2' })).toHaveStyle({
         height: 'auto',
         width: '100%',

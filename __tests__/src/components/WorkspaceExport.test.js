@@ -1,6 +1,9 @@
 import { screen, render } from '@tests/utils/test-utils';
 import userEvent from '@testing-library/user-event';
+import copy from 'copy-to-clipboard';
 import WorkspaceExport from '@src/components/WorkspaceExport.svelte';
+
+vi.mock('copy-to-clipboard', () => ({ default: vi.fn() }));
 
 describe('WorkspaceExport', () => {
   let user;
@@ -32,18 +35,21 @@ describe('WorkspaceExport', () => {
   });
 
   it('reveals a snackbar on copy', async () => {
-    // jsdom doesn't support the clipboard API or prompt (used as a fallback)
-    // so we mock the prompt at least to avoid a warning in the test output
-    vi.stubGlobal(
-      'prompt',
-      vi.fn(() => true),
-    );
+    vi.mocked(copy).mockResolvedValueOnce(true);
 
     await user.click(screen.getByRole('button', { name: 'Copy' }));
+    expect(copy).toHaveBeenCalledWith(JSON.stringify(mockState, null, 2), { fallbackToPrompt: true });
     expect(screen.getByRole('alert')).toHaveTextContent('The workspace configuration was copied to your clipboard');
 
     await user.click(screen.getByRole('button', { name: 'Dismiss' }));
     expect(handleClose).toHaveBeenCalled();
+  });
+
+  it('keeps the export available if copying fails', async () => {
+    vi.mocked(copy).mockResolvedValueOnce(false);
+    await user.click(screen.getByRole('button', { name: 'Copy' }));
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeVisible();
   });
 
   it('renders an exportable version of state', async () => {

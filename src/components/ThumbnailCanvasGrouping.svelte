@@ -19,6 +19,7 @@
     index ?? (side ? rowIndex * (columnCount || canvasGroupings.length) + columnIndex : columnIndex * bottomRows + rowIndex),
   );
   const group = $derived(canvasGroupings[groupIndex]);
+  const imageHeight = $derived(Math.max(1, (style.height || 100) - 12 - (showThumbnailLabels ? 20 : 0)));
   const selected = $derived(group?.some((canvas) => canvas.id === currentCanvasId));
 </script>
 
@@ -26,8 +27,8 @@
   <div
     class="mirador-thumbnail-nav-container"
     role="gridcell"
-    style:width={Number.isFinite(style.width) ? Math.max(1, style.width - 12) + 'px' : undefined}
-    style:height={Number.isFinite(style.height) ? Math.max(1, style.height - 12) + 'px' : undefined}
+    style:width={Number.isFinite(style.width) ? Math.max(1, style.width - (side ? 0 : 12)) + 'px' : undefined}
+    style:height={Number.isFinite(style.height) ? Math.max(1, style.height - (side ? 0 : 12)) + 'px' : undefined}
     aria-selected={selected}
     aria-colindex={columnIndex + 1}
     aria-rowindex={rowIndex + 1}
@@ -54,7 +55,8 @@
             resource: canvas,
             labelled: showThumbnailLabels,
             label: side ? String(canvas.index + 1) : undefined,
-            maxHeight: side ? Math.max(1, (style.height || 100) - 24) : style.height,
+            maxHeight: side ? imageHeight : style.height,
+            style: side ? { width: '100%', maxWidth: '100%', height: imageHeight, objectFit: 'contain' } : undefined,
           }}
         />
       {/each}
@@ -81,8 +83,11 @@
     outline-offset: 2px;
   }
   .side :global(img) {
-    object-fit: contain;
-    max-width: 100%;
+    display: block;
+  }
+  .side :global(span) {
+    display: block;
+    line-height: 20px;
   }
   .side :global(div) {
     min-width: 0;
