@@ -1,3 +1,5 @@
+// Exercise iframe markup and messages without loading the remote auth page.
+// @vitest-environment jsdom
 import { screen, render, waitFor } from '@tests/utils/test-utils';
 import userEvent from '@testing-library/user-event';
 import IIIFAuthentication from '@src/components/IIIFAuthentication.svelte';

@@ -1,3 +1,5 @@
+// Exercise iframe markup and messages without loading the remote auth page.
+// @vitest-environment jsdom
 import AccessTokenSender from '@src/components/AccessTokenSender.svelte';
 import { renderSvelte } from '@tests/utils/render-svelte';
 
