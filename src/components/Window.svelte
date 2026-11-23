@@ -136,7 +136,7 @@
     box-sizing: border-box;
     min-height: 44px;
     min-width: 44px;
-    font-size: 26px;
+    font-size: 21px;
     line-height: 1;
   }
   .workspace-controls,

@@ -1,5 +1,8 @@
 <script>
+  import AnchoredWorkspaceMenu from './AnchoredWorkspaceMenu.svelte';
   let {
+    anchorEl,
+    id,
     handleClose = () => {},
     windowIds = [],
     focusWindow = () => {},
@@ -13,8 +16,7 @@
   });
 </script>
 
-<div class="backdrop" onclick={handleClose} role="presentation"></div>
-<div class="menu" role="menu" aria-label={t('openWindows')}>
+<AnchoredWorkspaceMenu {anchorEl} {id} label={t('openWindows')} {handleClose}>
   <h2 role="presentation">{t('openWindows')}</h2>
   {#each windowIds as windowId (windowId)}
     <button
@@ -34,28 +36,9 @@
       {titles[windowId] || t('untitled')}
     </button>
   {/each}
-</div>
+</AnchoredWorkspaceMenu>
 
 <style>
-  .backdrop {
-    inset: 0;
-    position: fixed;
-    z-index: 1299;
-  }
-  .menu {
-    background: Canvas;
-    box-shadow: 0 4px 16px #0004;
-    display: flex;
-    flex-direction: column;
-    max-height: min(70vh, 30rem);
-    min-width: 15rem;
-    overflow: auto;
-    padding: 0.5rem;
-    position: fixed;
-    right: 0.5rem;
-    top: 0.5rem;
-    z-index: 1300;
-  }
   h2 {
     font-size: 0.9rem;
     margin: 0.5rem;
