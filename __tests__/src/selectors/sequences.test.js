@@ -146,9 +146,17 @@ describe('getSequenceViewingDirection', () => {
     expect(getSequenceViewingDirection(state, { manifestId: 'x' })).toEqual('left-to-right');
   });
 
-  it('is null if no viewingDirection is specified', () => {
+  it('defaults to right-to-left when the manifest and sequence omit viewingDirection', () => {
     const state = { manifests: { x: { json: manifestFixture019 } } };
-    expect(getSequenceViewingDirection(state, { manifestId: 'x' })).toBeNull();
+    expect(getSequenceViewingDirection(state, { manifestId: 'x' })).toEqual('right-to-left');
+  });
+
+  it('uses the window override for a manifest without a direction', () => {
+    const state = {
+      manifests: { x: { json: manifestFixture019 } },
+      windows: { a: { manifestId: 'x', viewingDirection: 'left-to-right' } },
+    };
+    expect(getSequenceViewingDirection(state, { windowId: 'a' })).toEqual('left-to-right');
   });
 });
 

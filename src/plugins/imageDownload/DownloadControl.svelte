@@ -31,8 +31,9 @@
   aria-haspopup="dialog"
   onclick={showDownloads}
 >
-  <svg aria-hidden="true" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-    <path d="M16 13h-3V3h-2v10H8l4 4zM4 19v2h16v-2z" />
+  <svg aria-hidden="true" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M12 3v10m-4-4 4 4 4-4" stroke-linecap="round" stroke-linejoin="round" />
+    <rect x="4" y="16" width="16" height="5" rx="1" />
   </svg>
 </button>
 <dialog

@@ -92,7 +92,7 @@ export const getSequenceViewingDirection = createSelector(
       (sequence && sequence.getViewingDirection()) ||
       (manifest && manifest.getViewingDirection());
     if (viewingDirection) return viewingDirection;
-    return null;
+    return manifest ? 'right-to-left' : null;
   },
 );
 
