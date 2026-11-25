@@ -1,9 +1,13 @@
-import { call, select } from 'redux-saga/effects';
+import { call, delay, select } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
+import { dynamic } from 'redux-saga-test-plan/providers';
 import { Utils } from 'manifesto.js';
+import { runSaga } from 'redux-saga';
+import { http, HttpResponse } from 'msw';
 
 import ActionTypes from '@src/state/actions/action-types';
 import { setCanvas } from '@src/state/actions';
+import MiradorCanvas from '@src/lib/MiradorCanvas';
 import {
   getManifests,
   getManifestoInstance,
@@ -19,11 +23,14 @@ import {
   getVisibleCanvasIds,
   getCanvasForAnnotation,
   getCanvases,
+  getMiradorCanvasWrapper,
+  getNextCanvasGrouping,
+  getRequestsConfig,
   selectInfoResponses,
   getWindowConfig,
 } from '@src/state/selectors';
 import { fetchManifests } from '@src/state/sagas/iiif';
-import {
+import windowsSaga, {
   determineAndShowCollectionDialog,
   fetchWindowManifest,
   setWindowDefaultSearchQuery,
@@ -35,11 +42,13 @@ import {
   panToFocusedWindow,
   setCurrentAnnotationsOnCurrentCanvas,
   fetchInfoResponses,
+  prefetchNextInfoResponses,
   setCanvasOnNewSequence,
   setCollectionPath,
 } from '@src/state/sagas/windows';
 import fixture from '../../fixtures/version-2/019.json';
 import collectionFixture from '../../fixtures/version-2/collection.json';
+import { server } from '../../mocks/server';
 
 describe('window-level sagas', () => {
   describe('fetchWindowManifest', () => {
@@ -615,6 +624,192 @@ describe('window-level sagas', () => {
           },
         })
         .run();
+    });
+
+    it('joins a speculative request that is already in flight instead of requesting twice', async () => {
+      const action = {
+        visibleCanvases: ['http://iiif.io/api/presentation/2.0/example/fixtures/canvas/24/c1.json'],
+        windowId: 'foo',
+      };
+      const manifest = Utils.parseManifest(fixture);
+      const infoId = 'https://stacks.stanford.edu/image/iiif/hg676jb4964%2F0380_796-44';
+      const speculative = new Map();
+      let recorded = false;
+      let storeAfterJoin;
+      const started = runSaga({ dispatch: () => {}, getState: () => ({}) }, function* prefetch() {
+        yield delay(20);
+        recorded = true;
+      });
+      speculative.set(infoId, started);
+
+      const { allEffects } = await expectSaga(fetchInfoResponses, action, speculative)
+        .provide([
+          [select(getCanvases, { windowId: 'foo' }), manifest.getSequences()[0].getCanvases()],
+          [
+            select(selectInfoResponses),
+            dynamic(() => {
+              if (!recorded) return {};
+              storeAfterJoin = { [infoId]: { isFetching: false, json: {} } };
+              return storeAfterJoin;
+            }),
+          ],
+        ])
+        .silentRun();
+
+      expect(storeAfterJoin).toBeDefined();
+      expect(allEffects.filter((effect) => effect.type === 'PUT')).toEqual([]);
+      expect(started.isRunning()).toBe(false);
+    });
+
+    it('requests normally when the speculative request did not record a response', async () => {
+      const action = {
+        visibleCanvases: ['http://iiif.io/api/presentation/2.0/example/fixtures/canvas/24/c1.json'],
+        windowId: 'foo',
+      };
+      const manifest = Utils.parseManifest(fixture);
+      const infoId = 'https://stacks.stanford.edu/image/iiif/hg676jb4964%2F0380_796-44';
+      const speculative = new Map();
+      const failed = runSaga({ dispatch: () => {}, getState: () => ({}) }, function* prefetch() {
+        yield delay(10);
+      });
+      speculative.set(infoId, failed);
+
+      const { effects } = await expectSaga(fetchInfoResponses, action, speculative)
+        .provide([
+          [select(getCanvases, { windowId: 'foo' }), manifest.getSequences()[0].getCanvases()],
+          [select(selectInfoResponses), {}],
+        ])
+        .silentRun();
+
+      expect(effects.put.map((effect) => effect.payload.action)).toEqual([
+        {
+          imageResource: expect.anything(),
+          infoId,
+          type: 'mirador/REQUEST_INFO_RESPONSE',
+          windowId: 'foo',
+        },
+      ]);
+    });
+  });
+
+  describe('prefetchNextInfoResponses', () => {
+    const canvases = Utils.parseManifest(fixture).getSequences()[0].getCanvases();
+    const serviceId = (canvas) => canvas.getImages()[0].getResource().getServices()[0].id;
+    const currentId = serviceId(canvases[0]);
+    const action = { visibleCanvases: [canvases[0].id], windowId: 'foo' };
+
+    /** Provides the selectors the prefetch saga reads, in order. */
+    const provider = ({
+      requests = { prefetchNextImageInfo: true },
+      responses = { [currentId]: { isFetching: false, json: {} } },
+      visible = [canvases[0].id],
+    } = {}) => [
+      [select(getRequestsConfig), requests],
+      [select(getNextCanvasGrouping, { windowId: 'foo' }), canvases.slice(1)],
+      [select(getCanvases, { windowId: 'foo' }), canvases],
+      [select(getVisibleCanvasIds, { windowId: 'foo' }), visible],
+      [select(getMiradorCanvasWrapper), (canvas) => new MiradorCanvas(canvas)],
+      [select(selectInfoResponses), responses],
+    ];
+
+    afterEach(() => server.resetHandlers());
+
+    it('prefetches only the image metadata of the next group, one request at a time', async () => {
+      const nextIds = canvases.slice(1).map(serviceId);
+      server.use(
+        ...nextIds.map((id) =>
+          http.get(`${id}/info.json`, () =>
+            HttpResponse.json({ '@id': id, height: 100, profile: 'http://iiif.io/api/image/2/level2.json', width: 100 }),
+          ),
+        ),
+      );
+
+      const { effects, allEffects } = await expectSaga(prefetchNextInfoResponses, action, new Map())
+        .provide(provider())
+        .silentRun();
+
+      expect(effects.fork.map((effect) => effect.payload.fn.name)).toEqual([
+        'prefetchPublicInfoResponse',
+        'prefetchPublicInfoResponse',
+      ]);
+      expect(effects.put.map((effect) => effect.payload.action.infoId)).toEqual(nextIds);
+      expect(
+        allEffects.filter((effect) => effect.type === 'CALL' && String(effect.payload.args[0]).endsWith('default.jpg')),
+      ).toEqual([]);
+    });
+
+    it('does nothing unless the viewer opts in', async () => {
+      const { allEffects } = await expectSaga(prefetchNextInfoResponses, action, new Map())
+        .provide(provider({ requests: {} }))
+        .silentRun();
+
+      expect(allEffects).toEqual([expect.objectContaining({ type: 'SELECT' })]);
+    });
+
+    it('does nothing when custom request processors are configured', async () => {
+      const { allEffects } = await expectSaga(prefetchNextInfoResponses, action, new Map())
+        .provide(provider({ requests: { postprocessors: [() => {}], prefetchNextImageInfo: true } }))
+        .silentRun();
+
+      expect(allEffects).toEqual([expect.objectContaining({ type: 'SELECT' })]);
+    });
+
+    it('waits for the current group and gives up when its request failed', async () => {
+      const { allEffects } = await expectSaga(prefetchNextInfoResponses, action, new Map())
+        .provide(provider({ responses: {} }))
+        .silentRun(15000);
+
+      expect(allEffects.filter((effect) => effect.type === 'FORK')).toEqual([]);
+      expect(allEffects.filter((effect) => effect.type === 'PUT')).toEqual([]);
+    });
+
+    it('does nothing on the last page', async () => {
+      const { allEffects } = await expectSaga(prefetchNextInfoResponses, action, new Map())
+        .provide([
+          [select(getRequestsConfig), { prefetchNextImageInfo: true }],
+          [select(getNextCanvasGrouping, { windowId: 'foo' }), undefined],
+        ])
+        .silentRun();
+
+      expect(allEffects.filter((effect) => effect.type === 'FORK')).toEqual([]);
+    });
+
+    it('stops when the visible canvas changed while waiting', async () => {
+      const nextIds = canvases.slice(1).map(serviceId);
+      server.use(
+        ...nextIds.map((id) =>
+          http.get(`${id}/info.json`, () =>
+            HttpResponse.json({ '@id': id, height: 100, profile: 'http://iiif.io/api/image/2/level2.json', width: 100 }),
+          ),
+        ),
+      );
+
+      const { effects } = await expectSaga(prefetchNextInfoResponses, action, new Map())
+        .provide(provider({ visible: [canvases[1].id] }))
+        .silentRun();
+
+      expect(effects.fork).toBeUndefined();
+      expect(effects.put).toBeUndefined();
+    });
+  });
+
+  describe('windowsSaga wiring', () => {
+    const rootEffects = windowsSaga().next().value;
+    const setCanvasWorkers = rootEffects.payload
+      .filter((effect) => effect.type === 'FORK' && effect.payload.args[0] === ActionTypes.SET_CANVAS)
+      .map((effect) => effect.payload.args[1]);
+
+    it('starts the next-page prefetch for a canvas change', () => {
+      expect(setCanvasWorkers).toHaveLength(3);
+    });
+
+    it('stops the speculative prefetch when a viewer state is imported', () => {
+      const action = { visibleCanvases: [], windowId: 'foo' };
+      const { value } = setCanvasWorkers[2](action).next();
+
+      expect(value.type).toBe('RACE');
+      expect(Object.keys(value.payload)).toEqual(['prefetch', 'replaced']);
+      expect(value.payload.replaced.payload.pattern).toBe(ActionTypes.IMPORT_MIRADOR_STATE);
     });
   });
 

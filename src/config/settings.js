@@ -216,6 +216,7 @@ export default {
     productionPrefix: 'mirador',
   },
   requests: {
+    prefetchNextImageInfo: false, // Opt in to warming public IIIF metadata for the next page.
     preprocessors: [
       // Functions that receive HTTP requests and manipulate them (e.g. to add headers)
       // (url, options) => (url.match('info.json') && { ...options, myCustomThing: 'blah' })

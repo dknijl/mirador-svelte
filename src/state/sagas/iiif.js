@@ -1,4 +1,4 @@
-import { all, call, put, select, takeEvery } from 'redux-saga/effects';
+import { all, call, delay, put, race, select, takeEvery } from 'redux-saga/effects';
 import { Utils } from 'manifesto.js';
 import normalizeUrl from 'normalize-url';
 import ActionTypes from '../actions/action-types';
@@ -13,7 +13,7 @@ import {
   receiveAnnotation,
   receiveAnnotationFailure,
 } from '../actions';
-import { getManifests, getRequestsConfig, getAccessTokens, selectInfoResponse } from '../selectors';
+import { getManifests, getRequestsConfig, getAccessTokens, selectInfoResponse, selectInfoResponses } from '../selectors';
 
 /** Normalize a caught error (e.g. DOMException, TypeError) to a plain, serializable string. */
 function stringifyError(error) {
@@ -182,6 +182,64 @@ export function* fetchInfoResponse({ imageResource, infoId, windowId }) {
   };
 
   yield call(fetchIiifResourceWithAuth, `${infoId.replace(/\/$/, '')}/info.json`, iiifResource, {}, callbacks);
+}
+
+/** Detect IIIF Auth services in an Image API description without triggering authentication. */
+function hasAuthService(value) {
+  if (Array.isArray(value)) return value.some(hasAuthService);
+  if (!value || typeof value !== 'object') return false;
+  const types = [value.type, value['@type'], value.profile].flat();
+  return (
+    types.some((entry) => typeof entry === 'string' && /iiif\.io\/api\/auth\/|^Auth[A-Z]/i.test(entry)) ||
+    hasAuthService(value.service)
+  );
+}
+
+/** Fetch publicly usable metadata without recording failures or opening an auth flow. */
+export function* prefetchPublicInfoResponse(service) {
+  const { id } = service;
+  if (!/^https?:\/\//i.test(id) || hasAuthService(service.__jsonld)) return;
+  const before = yield select(selectInfoResponses);
+  if (before[id]) return;
+  const controller = new AbortController();
+  try {
+    const canonicalId = id.replace(/\/+$/, '');
+    const url = new URL(canonicalId);
+    if (url.username || url.password || url.search || url.hash) return;
+    url.pathname += '/info.json';
+    const { response } = yield race({
+      response: call(fetch, url.href, {
+        cache: 'no-store',
+        credentials: 'omit',
+        priority: 'low',
+        redirect: 'error',
+        signal: controller.signal,
+      }),
+      timeout: delay(8000),
+    });
+    if (!response?.ok) return;
+    const { json } = yield race({
+      json: call([response, response.json]),
+      timeout: delay(1000),
+    });
+    const actualId = json?.['@id'] || json?.id;
+    if (
+      typeof actualId !== 'string' ||
+      normalizeUrl(actualId, { stripAuthentication: false }) !== normalizeUrl(canonicalId, { stripAuthentication: false }) ||
+      !Number.isFinite(json.width) ||
+      json.width <= 0 ||
+      !Number.isFinite(json.height) ||
+      json.height <= 0 ||
+      hasAuthService(json)
+    )
+      return;
+    const latest = yield select(selectInfoResponses);
+    if (!latest[id]) yield put(receiveInfoResponse(id, json, true));
+  } catch {
+    // Speculation must not affect the normal request and its error/auth handling.
+  } finally {
+    controller.abort();
+  }
 }
 
 /** @private */

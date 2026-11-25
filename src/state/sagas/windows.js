@@ -1,4 +1,4 @@
-import { all, call, put, race, select, take, takeEvery } from 'redux-saga/effects';
+import { all, call, delay, fork, join, put, race, select, take, takeEvery, takeLeading } from 'redux-saga/effects';
 import ActionTypes from '../actions/action-types';
 import {
   setContentSearchCurrentAnnotation,
@@ -26,12 +26,14 @@ import {
   getWorkspace,
   getElasticLayout,
   getCanvases,
+  getNextCanvasGrouping,
+  getRequestsConfig,
   selectInfoResponses,
   getWindowConfig,
   getMiradorCanvasWrapper,
   getMiradorManifestWrapper,
 } from '../selectors';
-import { fetchManifests } from './iiif';
+import { fetchManifests, prefetchPublicInfoResponse } from './iiif';
 import { getIiifResourceImageService } from '../../lib/iiif';
 
 /** */
@@ -257,8 +259,15 @@ export function* setCanvasforSelectedAnnotation({ annotationId, windowId }) {
   yield put(thunk);
 }
 
+/** Wait for a speculative request already in flight, then use the normal path if it failed. */
+function* finishVisibleInfoResponse(task, infoId, imageResource, windowId) {
+  yield join(task);
+  const responses = yield select(selectInfoResponses);
+  if (!responses[infoId]) yield put(fetchInfoResponse({ imageResource, windowId }));
+}
+
 /** Fetch info responses for the visible canvases */
-export function* fetchInfoResponses({ visibleCanvases: visibleCanvasIds, windowId }) {
+export function* fetchInfoResponses({ visibleCanvases: visibleCanvasIds, windowId }, speculative) {
   const canvases = yield select(getCanvases, { windowId });
   const infoResponses = yield select(selectInfoResponses);
   const visibleCanvases = (canvases || []).filter((c) => visibleCanvasIds.includes(c.id));
@@ -269,15 +278,81 @@ export function* fetchInfoResponses({ visibleCanvases: visibleCanvasIds, windowI
       const miradorCanvas = getMiradorCanvas(canvas);
       return all(
         miradorCanvas.iiifImageResources
-          .map(
-            (imageResource) =>
-              !infoResponses[getIiifResourceImageService(imageResource)?.id] &&
-              put(fetchInfoResponse({ imageResource, windowId })),
-          )
+          .map((imageResource) => {
+            const id = getIiifResourceImageService(imageResource)?.id;
+            if (!id || infoResponses[id]) return false;
+            const task = speculative?.get(id);
+            return task
+              ? call(finishVisibleInfoResponse, task, id, imageResource, windowId)
+              : put(fetchInfoResponse({ imageResource, windowId }));
+          })
           .filter(Boolean),
       );
     }),
   );
+}
+
+/** Warm only the next group, after the current group's metadata is ready. */
+export function* prefetchNextInfoResponses({ visibleCanvases, windowId }, speculative) {
+  if (!visibleCanvases?.length) return;
+  const { prefetchNextImageInfo, preprocessors = [], postprocessors = [] } = yield select(getRequestsConfig);
+  if (!prefetchNextImageInfo || preprocessors.length || postprocessors.length) return;
+  const next = yield select(getNextCanvasGrouping, { windowId });
+  if (!next?.length) return;
+
+  const canvases = yield select(getCanvases, { windowId });
+  const getMiradorCanvas = yield select(getMiradorCanvasWrapper);
+  const currentIds = new Set(
+    canvases
+      .filter((canvas) => visibleCanvases.includes(canvas.id))
+      .flatMap((canvas) => getMiradorCanvas(canvas).iiifImageResources)
+      .map((resource) => getIiifResourceImageService(resource)?.id)
+      .filter(Boolean),
+  );
+
+  // Debounce rapid clicks, and keep speculative requests after foreground metadata.
+  yield delay(150);
+  while (true) {
+    const responses = yield select(selectInfoResponses);
+    if ([...currentIds].every((id) => responses[id]?.json && !responses[id].degraded)) break;
+    if ([...currentIds].some((id) => responses[id]?.degraded || (!responses[id]?.isFetching && !responses[id]?.json))) {
+      return;
+    }
+    const { settled } = yield race({
+      settled: take(
+        (action) =>
+          currentIds.has(action.infoId) &&
+          [
+            ActionTypes.RECEIVE_INFO_RESPONSE,
+            ActionTypes.RECEIVE_DEGRADED_INFO_RESPONSE,
+            ActionTypes.RECEIVE_INFO_RESPONSE_FAILURE,
+            ActionTypes.REMOVE_INFO_RESPONSE,
+          ].includes(action.type),
+      ),
+      timeout: delay(10000),
+    });
+    if (!settled) return;
+  }
+
+  const seen = new Set(currentIds);
+  for (const canvas of next) {
+    for (const resource of getMiradorCanvas(canvas).iiifImageResources) {
+      const visibleNow = yield select(getVisibleCanvasIds, { windowId });
+      if (visibleNow.length !== visibleCanvases.length || visibleNow.some((id, index) => id !== visibleCanvases[index])) {
+        return;
+      }
+      const service = getIiifResourceImageService(resource);
+      if (!service?.id || seen.has(service.id)) continue;
+      seen.add(service.id);
+      const task = yield fork(prefetchPublicInfoResponse, service);
+      speculative.set(service.id, task);
+      try {
+        yield join(task);
+      } finally {
+        speculative.delete(service.id);
+      }
+    }
+  }
 }
 
 /** */
@@ -297,13 +372,22 @@ function* initializeWindow(action) {
 }
 
 export default function* windowsSaga() {
+  const speculative = new Map();
   yield all([
     takeEvery(ActionTypes.ADD_WINDOW, initializeWindow),
     takeEvery(ActionTypes.UPDATE_WINDOW, initializeWindow),
     takeEvery(ActionTypes.UPDATE_WINDOW, setCanvasOnNewSequence),
     takeEvery(ActionTypes.UPDATE_WINDOW, fetchCollectionManifests),
     takeEvery(ActionTypes.SET_CANVAS, setCurrentAnnotationsOnCurrentCanvas),
-    takeEvery(ActionTypes.SET_CANVAS, fetchInfoResponses),
+    takeEvery(ActionTypes.SET_CANVAS, function* fetchVisible(action) {
+      yield call(fetchInfoResponses, action, speculative);
+    }),
+    takeLeading(ActionTypes.SET_CANVAS, function* prefetchNext(action) {
+      yield race({
+        prefetch: call(prefetchNextInfoResponses, action, speculative),
+        replaced: take(ActionTypes.IMPORT_MIRADOR_STATE),
+      });
+    }),
     takeEvery(ActionTypes.UPDATE_COMPANION_WINDOW, fetchCollectionManifests),
     takeEvery(ActionTypes.SET_WINDOW_VIEW_TYPE, updateVisibleCanvases),
     takeEvery(ActionTypes.RECEIVE_SEARCH, setCanvasOfFirstSearchResult),

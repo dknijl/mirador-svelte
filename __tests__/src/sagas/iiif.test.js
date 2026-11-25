@@ -6,8 +6,16 @@ import {
   fetchSearchResponse,
   fetchInfoResponse,
   fetchResourceManifest,
+  prefetchPublicInfoResponse,
 } from '@src/state/sagas/iiif';
-import { getConfig, getManifests, selectInfoResponse, getAccessTokens, getRequestsConfig } from '@src/state/selectors';
+import {
+  getConfig,
+  getManifests,
+  selectInfoResponse,
+  selectInfoResponses,
+  getAccessTokens,
+  getRequestsConfig,
+} from '@src/state/selectors';
 import { http, HttpResponse } from 'msw';
 import { server } from '../../mocks/server';
 
@@ -365,6 +373,95 @@ describe('IIIF sagas', () => {
           type: 'mirador/RECEIVE_INFO_RESPONSE',
         })
         .run();
+    });
+  });
+
+  describe('prefetchPublicInfoResponse', () => {
+    const publicId = 'http://server/prefix/publicImage';
+    const publicUrl = `${publicId}/info.json`;
+    const infoJson = { '@id': publicId, height: 100, profile: 'http://iiif.io/api/image/2/level2.json', width: 200 };
+
+    const requests = (allEffects) =>
+      allEffects.filter((effect) => effect.type === 'CALL' && effect.payload.args[0] === publicUrl);
+
+    it('fetches public metadata without credentials and low priority', async () => {
+      server.use(http.get(publicUrl, () => HttpResponse.json(infoJson)));
+
+      const { allEffects, effects } = await expectSaga(prefetchPublicInfoResponse, { __jsonld: {}, id: publicId })
+        .provide([[select(selectInfoResponses), {}]])
+        .silentRun();
+
+      expect(effects.put.map((effect) => effect.payload.action)).toEqual([
+        {
+          infoId: publicId,
+          infoJson,
+          ok: true,
+          tokenServiceId: undefined,
+          type: 'mirador/RECEIVE_INFO_RESPONSE',
+        },
+      ]);
+      expect(requests(allEffects)).toHaveLength(1);
+      expect(requests(allEffects)[0].payload.args[1]).toMatchObject({
+        cache: 'no-store',
+        credentials: 'omit',
+        priority: 'low',
+        redirect: 'error',
+      });
+    });
+
+    it('does not record a 503 so the normal request handles it', async () => {
+      server.use(http.get(publicUrl, () => new HttpResponse('Service Unavailable', { status: 503 })));
+
+      const { allEffects } = await expectSaga(prefetchPublicInfoResponse, { __jsonld: {}, id: publicId })
+        .provide([[select(selectInfoResponses), {}]])
+        .silentRun();
+
+      expect(requests(allEffects)).toHaveLength(1);
+      expect(allEffects.filter((effect) => effect.type === 'PUT')).toEqual([]);
+    });
+
+    it('does not record a response that points at another image service', async () => {
+      server.use(http.get(publicUrl, () => HttpResponse.json({ ...infoJson, '@id': 'http://server/prefix/otherImage' })));
+
+      const { allEffects } = await expectSaga(prefetchPublicInfoResponse, { __jsonld: {}, id: publicId })
+        .provide([[select(selectInfoResponses), {}]])
+        .silentRun();
+
+      expect(allEffects.filter((effect) => effect.type === 'PUT')).toEqual([]);
+    });
+
+    it('does not request metadata that is already in the store', async () => {
+      const { allEffects } = await expectSaga(prefetchPublicInfoResponse, { __jsonld: {}, id: publicId })
+        .provide([[select(selectInfoResponses), { [publicId]: { isFetching: true } }]])
+        .silentRun();
+
+      expect(requests(allEffects)).toEqual([]);
+    });
+
+    it('leaves images with an auth service to the normal request', async () => {
+      const authService = {
+        __jsonld: {
+          service: [{ '@id': 'https://authentication.example.org/login', profile: 'http://iiif.io/api/auth/1/login' }],
+        },
+        id: publicId,
+      };
+
+      const { allEffects } = await expectSaga(prefetchPublicInfoResponse, authService)
+        .provide([[select(selectInfoResponses), {}]])
+        .silentRun();
+
+      expect(requests(allEffects)).toEqual([]);
+    });
+
+    it('does not request a service id that carries credentials or a query', async () => {
+      const { allEffects } = await expectSaga(prefetchPublicInfoResponse, {
+        __jsonld: {},
+        id: 'http://server/prefix/image?a=b',
+      })
+        .provide([[select(selectInfoResponses), {}]])
+        .silentRun();
+
+      expect(allEffects.filter((effect) => effect.type === 'CALL' && typeof effect.payload.args[0] === 'string')).toEqual([]);
     });
   });
 
